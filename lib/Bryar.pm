@@ -1,10 +1,11 @@
 package Bryar;
 use Bryar::Config;
+use Bryar::Comment;
 use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.0';
+our $VERSION = '1.2';
 
 =head1 NAME
 

@@ -3,7 +3,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 use CGI qw/:standard :netscape/;
 use Time::Piece;
 use Time::Local;
@@ -35,16 +35,16 @@ This is a useful method, and should have a useful description.
 sub parse_args {
     my $self = shift;
     my $bryar = shift;
+    my $cgi = new CGI;
     my $url = url();
     my %args;
     my $pi = path_info();
     my @pi = split m{/}, $pi;
     shift @pi while @pi and not$pi[0];
-    return unless @pi;
     #...
     if ($pi[-1] eq "xml")     { $args{xml} = 1; pop @pi; }
     if ($pi[-1] =~ /id_(.*)/) { $args{id} = $1; pop @pi; }
-    if ($pi[0] =~ /^([a-zA-Z]\w*)/) { # We have a subblog
+    if ($pi[0] and $pi[0] =~ /^([a-zA-Z]\w*)/) { # We have a subblog
         $args{subblog} = $1;
         shift @pi;
     }
@@ -58,6 +58,23 @@ sub parse_args {
         $args{limit}   = $bryar->config->recent if $args{subblog};
     }
 
+    if (my $search = $cgi->param("search")) {
+        $args{content} = $search if $search =~ /\S{3,}/; # Avoid trivials.
+    }
+    $args{comments} = $cgi->param("comments") if $cgi->param("comments");
+    if ($cgi->param("newcomment")) {
+        my ($doc) = $bryar->config->source->search(
+                    $bryar, id => $cgi->param("id"));
+       die "Couldn't find Doc ".$cgi->param("id") unless $doc;
+        $bryar->config->source->add_comment(
+            $bryar,
+            document => $doc,
+            author => $cgi->param("author"),
+            url => $cgi->param("url"),
+            content => $cgi->param("content"),
+            epoch => time
+        );
+    }
     return %args;
 }
 

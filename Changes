@@ -1,6 +1,15 @@
 Revision history for Perl extension Bryar.
 
-0.01  Sun May 18 21:05:33 2003
+1.2 - Sat Jun 14 22:50:06 BST 2003
+    - Added support for comments.
+
+1.1  Sat May 24 18:46:33 BST 2003
+    - HTML fix and duplicate Cwd removed, thanks to Matt Cashner.
+    - Allowed searching for content of flat-file documents
+    - Used subblogs to set category
+    - Make times gmtime, not local; helps with 8601 compliance.
+
+1.0  Sun May 18 21:05:33 2003
 	- original version; created by h2xs 1.22 with options
 		-b 5.6.0 -AXn Bryar
 

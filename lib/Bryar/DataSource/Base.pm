@@ -87,6 +87,24 @@ sub search {
     return @out_docs;
 }
 
+=head2 add_comment
+
+    Class->add_comment($bryar,
+                       document => $document,
+                         author => $author,
+                            url => $url,
+                        content => $content );
+
+When your class receives this method, it needs to store a comment for a
+particular L<Bryar::Document> with the given author name, link and
+content. Obviously, we can't implement this for you either.
+
+=cut
+
+sub add_comment {
+    die "The old abstract base class problem, I'm afraid."
+}
+
 =head1 LICENSE
 
 This module is free software, and may be distributed under the same

@@ -1,5 +1,6 @@
 Changes
 lib/Bryar/Collector.pm
+lib/Bryar/Comment.pm
 lib/Bryar/Config.pm
 lib/Bryar/DataSource/Base.pm
 lib/Bryar/DataSource/FlatFile.pm

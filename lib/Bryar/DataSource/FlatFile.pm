@@ -1,13 +1,13 @@
 package Bryar::DataSource::FlatFile;
 use Cwd;
+use File::Basename;
 use Bryar::Document;
 use File::Find::Rule;
 use 5.006;
 use strict;
 use warnings;
 use Carp;
-use Cwd;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 =head1 NAME
 
@@ -17,6 +17,7 @@ Bryar::DataSource::FlatFile - Blog entries from flat files, a la blosxom
 
 	$self->all_documents(...);
 	$self->search(...);
+    $self->add_comment(...);
 
 =head1 DESCRIPTION
 
@@ -70,20 +71,20 @@ sub search {
     $find->maxdepth($bryar->{config}->depth);
     if ($params{since})   { $find->mtime(">".$params{since}) }
     if ($params{before})  { $find->mtime("<".$params{before}) }
+    my @docs;
+    local $/;
+    if ($params{content}) { $find->grep(qr/\b\Q$params{content}\E\b/i) }
     if (!$params{limit}) {
-        my @docs = map { $self->make_document($_) } $find->in(".");
-        chdir($was);
-        return @docs;
-    }
-
-    my @docs =  map { $self->make_document($_) } 
+        @docs = map { $self->make_document($_) } $find->in(".");
+    } else {
+        @docs =  map { $self->make_document($_) } 
                 (
                     map { $_->[0] }
                     sort { $b->[1] <=> $a->[1] }
                     map { [$_, ((stat$ _)[9]) ] }
                     $find->in(".")
                 ) [0..$params{limit}-1];
-    
+    }
     chdir($was);
     return @docs;
 }
@@ -100,6 +101,7 @@ sub make_document {
     return unless $file;
     open(my($in), $file) or return;
     my $when = (stat $file)[9];
+    local $/ = "\n";
     my $who = getpwuid((stat $file)[4]);
     $file =~ s/\.txt$//;
     my $title = <$in>;
@@ -107,13 +109,67 @@ sub make_document {
     local $/;
     my $content = <$in>;
     close $in;
+
+    my $comments = [];
+    $comments = [_read_comments($file, $file.".comments") ]
+        if -e $file.".comments";
+
+    my $dir = dirname($file);
+    $dir =~ s{^\./?}{};
+    my $category = $dir || "main";
     return Bryar::Document->new(
-        title   => $title,
-        content => $content,
-        epoch   => $when,
-        author  => $who,
-        id      => $file,
+        title    => $title,
+        content  => $content,
+        epoch    => $when,
+        author   => $who,
+        id       => $file,
+        category => $category,
+        comments => $comments
     );
+}
+
+sub _read_comments {
+    my ($id, $file) = @_;
+    open COMMENTS, $file or die $!;
+    local $/;
+    # Watch carefully
+    my $stuff = <COMMENTS>;
+    my @rv;
+    for (split /-----\n/, $stuff) {
+        push @rv,
+            Bryar::Comment->new(
+                id => $id,
+                map {/^(\w+): (.*)/; $1 => $2 } split /\n/, $_
+            )
+    }
+    return @rv;
+}
+
+=head2 add_comment
+
+    Class->add_comment($bryar, 
+                       document => $doc,
+                         author => $author,
+                            url => $url,
+                        content => $content );
+
+Records the given comment details.
+
+=cut
+
+sub add_comment {
+    my ($self, $bryar) = (shift, shift);
+    my %params = @_;
+    my $file = $params{document}->id.".comments";
+    # This probably fails with subblogs, but I don't use them.
+    chdir $bryar->{config}->datadir."/";
+    open OUT, ">> $file" or die $!;
+    delete $params{document};
+    s/\n/\r/g for values %params;
+    print OUT "$_: $params{$_}\n" for keys %params;
+    print OUT "-----\n";
+    # Looks a bit like blosxom, doesn't it?
+    close OUT;
 }
 
 =head1 LICENSE

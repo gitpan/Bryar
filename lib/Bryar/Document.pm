@@ -26,6 +26,8 @@ Bryar::Document - Represents a blog post
 	$self->keywords(...); # Return keywords relating to this document
     $self->id             # Unique identifier
 
+    $self->comments();    # Get comments
+
 =head1 DESCRIPTION
 
 This encapsulates a blog post, as returned from a search on a data
@@ -51,7 +53,8 @@ sub new {
         author =>  $args{author} ,
         category =>  $args{category} ,
         title =>  $args{title} ,
-        id => $args{id}
+        id => $args{id},
+        comments => ($args{comments} || [])
 
     }, $class;
     return $self;
@@ -168,7 +171,18 @@ sub id {
     return $self->{id};
 }
 
+=head2 comments
 
+    @comments = $self->comments();
+
+Returns a list of L<Bryar::Comment> objects attached to this document.
+
+=cut
+
+sub comments {
+    my $self = shift;
+    return @{$self->{comments}};
+}
 
 =head1 LICENSE
 

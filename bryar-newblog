@@ -32,9 +32,92 @@ My first blog post!
 EOC
 
 write_file("template.html", <<'EOC');
+
 [% MACRO day(entry_time) BLOCK;
     entry_time.day _ ", " _ entry_time.mday _ " " _
     entry_time.month _ " " _ entry_time.year;
+END;
+
+MACRO category(entry) BLOCK;
+ "Category : " _ entry.category;
+END;
+
+MACRO author(entry) BLOCK;
+ "Author : " _ entry.author;
+END;
+
+MACRO comment_form(entry) BLOCK;
+  'Post a new comment!
+  <DIV class="comment">
+  <FORM METHOD="POST">
+  Your name: <INPUT NAME="author"><BR>
+  Your address/home page: <INPUT NAME="url"><BR>
+  <HR WIDTH="98%">
+  Your rant:<BR>
+  <textarea NAME="content" COLS=80 ROWS=7></textarea>
+  <BR>
+  <INPUT TYPE="submit" VALUE="Vent">
+  <INPUT TYPE="hidden" NAME="id" VALUE="'; entry.id;
+  '"><INPUT TYPE="hidden" NAME="newcomment" VALUE="1">
+  
+  </FORM>
+  </DIV>
+  ';
+
+END;
+
+MACRO permalink(entry, params) BLOCK;
+ '<a href="';
+ bryar.config.baseurl;
+ '/id_';
+ entry.id;
+ "?" _ params IF params;
+ '">';
+END;
+
+MACRO comments(entry) BLOCK;
+ permalink(entry, "comments=1");
+ entry.comments.size || 0;
+ " Comments</A>";
+ IF bryar.arguments.comments;
+     "</P>";
+
+     FOREACH comment = entry.comments; 
+     '<DIV CLASS="comment">';
+     comment.content;
+     '<BR><HR COLOR="#AAAAAA" WIDTH=98%>';
+     '<I>Posted by <A HREF="'; comment.url; '">'; comment.author;
+     '</A> at ';
+     day(comment.timepiece);
+     ' '; 
+     comment.timepiece.time;
+     '</I></DIV>';
+     '<BR>';
+     END;
+     comment_form(entry);
+     "<P>";
+ END;
+END; 
+
+%]
+
+[%
+
+MACRO google_link(query, label) BLOCK;
+ '<a href="http://www.google.com/search?q=';
+ query | html | uri;
+ '">'; 
+ label; 
+ "</a>";
+END;
+
+MACRO keywords(entry) BLOCK;
+    "Keywords :";
+    FOREACH key = entry.keywords.slice(0,2);
+       '[ ';
+       google_link(key, key);
+       '] ';
+    END;
 END;
 %]
 
@@ -42,23 +125,28 @@ END;
 
 [% FOREACH entry = documents;
     entry_time = entry.timepiece;
-    IF entry == documents.first or entry_time.ymd != previous.entry_timepiece.ymd %]
-    <h1> [% day(entry_time) %] </h1>
+    IF entry == documents.first or entry_time.ymd != previous.timepiece.ymd %]
+    <span class="blosxomDate"> [% day(entry_time) %] </span>
     [% END %]
     [% previous = entry %]
 
-    <a name="[% entry.id %]">
-        <h2><b>[% entry.title %]</b></h2>
-    </a>
-    
-    <br/>
-
+    <p class="blosxomEntry"><a name="[%entry.id%]">
+    <span class="blosxomTitle"><b>[%entry.title%]</b></span>
+    </a><br/>
+    <span class="blosxomBody">
     [% entry.content %]
+</span><br />
 
-    <P>Posted at [%entry_time.time%]
-    <a href="[%bryar.config.baseurl%]/id_[%entry.id%]">#</a> 
-    <a href="http://www.google.com/search?q=[%entry.title | html | uri%]">G</a> 
- </p>
+    <span class="blosxomTime">Posted at [%entry_time.time%]</span> 
+    
+    | 
+     [% permalink(entry, "") %] #</a>
+    | 
+     [% google_link(entry.title, "G") %]
+    |
+    [% comments(entry) %]
+
+</p>
 [% END %]
 
 [% INCLUDE foot.html %]
@@ -72,11 +160,14 @@ write_file("head.html", <<EOC);
 <link rel="alternate" type="application/rss+xml" title="RSS" href="$url/xml" />
 </head>
 
-<H1> [% bryar.config.name %]
 <body bgcolor="#ffffff" text="#222222">
+<H1> [% bryar.config.name %]</H1>
 EOC
 
-write_file("foot.html", "<HR><P>Powered by Bryar!</P>\n</body>\n</HTML>\n");
+write_file("foot.html", <<EOC);
+<HR> <I> Powered by Bryar! </I> <FORM>Search: <INPUT name="search"></FORM>
+</body></HTML>
+EOC
 
 write_file("template.rss", <<EOC);
 <?xml version="1.0"?>
