@@ -10,6 +10,7 @@ lib/Bryar/Document.pm
 lib/Bryar/Frontend/Base.pm
 lib/Bryar/Frontend/CGI.pm
 lib/Bryar/Frontend/Mod_perl.pm
+lib/Bryar/Frontend/Static.pm
 lib/Bryar/Renderer/TT.pm
 lib/Bryar.pm
 Makefile.PL

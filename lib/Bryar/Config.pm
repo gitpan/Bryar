@@ -96,7 +96,7 @@ the Template Toolkit renderer.
 
 sub renderer {
     my $self = shift;
-    if (@_) { $self->{renderer} = @_ };
+    if (@_) { $self->{renderer} = shift };
 
     return $self->{renderer};
 }
@@ -115,7 +115,7 @@ from inside Apache.
 
 sub frontend {
     my $self = shift;
-    if (@_) { $self->{frontend} = @_ };
+    if (@_) { $self->{frontend} = shift };
 
     return $self->{frontend};
 }
@@ -132,7 +132,7 @@ want to mess with this.
 
 sub collector {
     my $self = shift;
-    if (@_) { $self->{collector} = @_ };
+    if (@_) { $self->{collector} = shift };
 
     return $self->{collector};
 }
@@ -149,7 +149,7 @@ C<Bryar::DataSource::FlatFile>, the blosxom-compatible data source.
 
 sub source {
     my $self = shift;
-    if (@_) { $self->{source} = @_ };
+    if (@_) { $self->{source} = shift };
 
     return $self->{source};
 }
@@ -167,7 +167,7 @@ blog posts) live.
 
 sub datadir {
     my $self = shift;
-    if (@_) { $self->{datadir} = @_ };
+    if (@_) { $self->{datadir} = shift};
 
     return $self->{datadir};
 }
@@ -222,7 +222,7 @@ Gets (and optionally sets) the value of the blog's depth
 
 sub depth {
     my $self = shift;
-    if (@_) { $self->{depth} = @_ };
+    if (@_) { $self->{depth} = shift };
 
     return $self->{depth};
 }
@@ -239,7 +239,7 @@ Defaults to 20 entries.
 
 sub recent {
     my $self = shift;
-    if (@_) { $self->{recent} = @_ };
+    if (@_) { $self->{recent} = shift };
 
     return $self->{recent};
 }

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 our $VERSION = '1.1';
-use CGI qw/:standard :netscape/;
+use CGI ();
 my $cgi = new CGI;
 
 =head1 NAME

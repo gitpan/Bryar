@@ -1,5 +1,10 @@
 Revision history for Perl extension Bryar.
 
+2.6 - Wed Feb 11 11:35:16 GMT 2004
+    - Static rendering
+    - Fixes to Config.pm accessors
+    - CGI micro-optimization.
+
 2.5 - Sun Feb  8 21:26:16 GMT 2004
     - Emergency release - unbreak comments.
 
