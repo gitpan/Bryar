@@ -8,6 +8,8 @@ WriteMakefile(
            File::Find::Rule => 0.09,
            Template => 2.0,
            Time::Piece => 1.0,
+           Digest::MD5 => 0,
+           Calendar::Simple => 0,
            UNIVERSAL::require => 0
         },
 );

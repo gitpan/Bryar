@@ -33,6 +33,11 @@ sub send_data { my $self = shift;
 sub send_header { 
 my ($self, $k, $v) = @_; Apache->request->header_out($k, $v) }
 
+sub get_header {
+    my ($self, $header) = @_;
+    Apache->request->headers_in->get($header);
+}
+
 sub handler ($$) { 
     my ($class, $r)= @_;
     return -1 if$r->filename and -f $r->filename;

@@ -6,6 +6,7 @@ use Carp;
 our $VERSION = '1.1';
 use Time::Piece;
 use Time::Local;
+use Digest::MD5 qw(md5_hex);
 
 =head1 NAME
 
@@ -19,6 +20,7 @@ Bryar::Frontend::Base - Base class for frontend classes
     sub obtain_args {...}
     sub send_data {...}
     sub send_header {...}
+    sub get_header {...}
 
 =head1 DESCRIPTION
 
@@ -49,6 +51,10 @@ Write stuff to the browser. This will only be called once.
 =head2 send_header
 
 Write stuff to the browser, first.
+
+=head2 get_header
+
+Read a HTTP header.
 
 =cut
 
@@ -136,14 +142,30 @@ sub _make_from_til {
 
     $self->output
 
-This is a useful method, and should have a useful description.
+Output the entire blog data to the browser
 
 =cut
 
 sub output {
     my ($self, $ct, $data) = @_;
     $self->send_header("Content-type", $ct);
-    $self->send_data($data);
+    $self->send_header('Cache-Control', 'max-age=180');
+    if ($self->_etag($data)) {
+        $self->send_header('Status', '304 Not Modified');
+        $self->send_header('Content-Length', 0);
+        $self->send_data('');
+    } else {
+        $self->send_header('Content-Length', length($data));
+        $self->send_data($data);
+    }
+}
+
+sub _etag {
+    my ($self, $data) = @_;
+    my $req_tag = $self->get_header("If-None-Match");
+    my $etag = '"'.md5_hex($data).'"';
+    $self->send_header('ETag', $etag);
+    return $etag eq $req_tag;
 }
 
 =head2 report_error

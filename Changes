@@ -1,5 +1,9 @@
 Revision history for Perl extension Bryar.
 
+2.3 - Fri Jan 23 13:21:18 GMT 2004
+    - Added ETag support from Marco d'Itri
+    - Added calendars, again from Marco d'Itri
+
 2.2 - Fri Jan 23 12:57:18 GMT 2004
     - Added the dummy files that *really* allow a runthrough without
       mod_perl

@@ -1,11 +1,13 @@
 package Bryar;
 use Bryar::Config;
+use Time::Local;
 use Bryar::Comment;
+use Calendar::Simple;
 use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.2';
+our $VERSION = '2.3';
 
 =head1 NAME
 
@@ -204,11 +206,57 @@ sub _doit {
 
     $args{format} ||= "html";
 
-    # I fully realise that this is nowhere near as generic as it needs
-    # to be, but I'm working on the YAGNI principle for the time being.
     $self->{config}->frontend()->output(
         $self->{config}->renderer->generate($args{format}, $self, @documents)
     );
+}
+
+=head2 posts_calendar
+
+Return a data structure containing the days and weeks of a given month and
+year with blog posts attached. See the C<calendar> template for an example.
+
+=cut
+
+my @mons = qw(x Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+
+sub posts_calendar {
+        my ($self, $month, $year) = @_;
+
+        $month ||= (localtime)[4];
+        $year  ||= (localtime)[5];
+
+        my $this_month = timegm(0, 0, 0, 1, $month, $year);
+        my @documents = $self->{config}->collector->collect($self,
+                since => $this_month
+        );
+
+        $month++;
+        $year += 1900;
+
+        # make an hash with keys the days with a post
+        my %posts = map { (gmtime($_->{epoch}))[3] => $_->{id} } @documents;
+
+        my @m = calendar($month, $year);
+        my @month;
+        foreach my $week (@m) {
+                my @weekdays;
+                foreach my $day (@$week) {
+                        my $d = { day => $day };
+                        if ($day and exists $posts{$day}) {
+                                $d->{idlink} = $posts{$day};
+                                $d->{link} = "$year/$mons[$month]/$day";
+                        }
+                        push(@weekdays, $d);
+                }
+
+                # mark the first day of the week, if it exists
+                $weekdays[0]{sunday} = 1 if defined $weekdays[0]{day};
+
+                push(@month, \@weekdays);
+        }
+
+        return @month;
 }
 
 =head2 config
@@ -228,7 +276,8 @@ terms as Perl itself.
 
 =head1 THANKS
 
-Steve Peters provided Atom support.
+Steve Peters provided Atom support. Marco d'Itri added ETag and
+Cache-Control support, as well as the calendar.
 
 =head1 AUTHOR
 

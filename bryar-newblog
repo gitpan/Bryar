@@ -123,6 +123,8 @@ END;
 
 [% INCLUDE head.html %]
 
+[% INCLUDE calendar %]
+
 [% FOREACH entry = documents;
     entry_time = entry.timepiece;
     IF entry == documents.first or entry_time.ymd != previous.timepiece.ymd %]
@@ -242,8 +244,28 @@ write_file("template.atom", <<EOC);
 </feed>
 EOC
 
+write_file("calendar", <<EOC);
+<table class="calendar">
+<thead>
+<tr class="days"><td>Sun</td><td>Mon</td><td>Tue</td><td>Wed</td><td>Thu</td><td
+>Fri</td><td>Sat</td></tr>
+</thead>
+<tbody>
+[% FOREACH week = bryar.posts_calendar %]
+  <tr>
+  [% FOREACH day = week %]
+    <td[% IF day.sunday %] class="sunday"[% END %]>
+    [% '<a href="' _ bryar.config.baseurl _ '/' _ day.link _ '">' IF day.link%]
+    [% day.day || '&nbsp;' %][% '</a>' IF day.link %]</td>
+  [% END %]
+  </tr>
+[% END %]
+</tbody>
+</table>
+EOC
+
 chmod 0644, $_ for ("bryar.conf", "1.txt", "head.html", "foot.html",
-                    "template.html","template.rss", "template.atom");
+                    "template.html","template.rss", "template.atom", "calendar");
 print "\nDone. Now you want to probably customize 'bryar.conf'.\n";
 print "You should probably also customize template.html, head.html and foot.html\n";
 print "Then point your browser at bryar.cgi, and get blogging!\n";

@@ -6,6 +6,7 @@ use warnings;
 use Carp;
 our $VERSION = '1.1';
 use CGI qw/:standard :netscape/;
+my $cgi = new CGI;
 
 =head1 NAME
 
@@ -18,9 +19,10 @@ an ordinary CGI program.
 
 =cut
 
-sub obtain_url { url() }
-sub obtain_path_info { path_info() }
-sub obtain_params { my $cgi = new CGI; map { $_ => $cgi->param($_) } $cgi->param }
+sub obtain_url { $cgi->url() }
+sub obtain_path_info { $cgi->path_info() }
+sub obtain_params { map { $_ => $cgi->param($_) } $cgi->param }
+sub get_header { my $self = shift; $cgi->http(shift) }
 sub send_data { my $self = shift; print "\n",@_ }
 sub send_header { my ($self, $k, $v) = @_; print "$k: $v\n"; }
 
