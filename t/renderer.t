@@ -9,6 +9,6 @@ ok(Bryar::Renderer::TT->can("generate"), "We can call generate");
 use Bryar;
 
 my $bryar = Bryar->new(datadir=> cwd()."/t/");
-my @documents = $bryar->{config}->source->all_documents($bryar);
+my @documents = $bryar->{config}->source->all_documents($bryar->config);
 my $page = $bryar->{config}->renderer->generate("html", $bryar, @documents);
 like($page, qr/Boring.*first blog.*second blog/sm, "Page processed OK");

@@ -63,21 +63,21 @@ sub obtain_params { croak "Abstract base class. ABSTRACT BASE CLASS."; }
 
 sub parse_args {
     my $self = shift;
-    my $bryar = shift;
+    my $config = shift;
     my %params = $self->obtain_params();
-    my %args = $self->parse_path($bryar);
+    my %args = $self->parse_path($config);
     if (my $search = $params{search}) {
         $args{content} = $search if $search =~ /\S{3,}/; # Avoid trivials.
     }
     for (qw(comments format)) {
         $args{$_} = $params{$_} if exists $params{$_};
     }
-    $self->process_new_comment($bryar, %params) if $params{newcomment};
+    $self->process_new_comment($config, %params) if $params{newcomment};
     return %args;
 }
 
 sub parse_path {
-    my ($self, $bryar) = @_;
+    my ($self, $config) = @_;
     my $pi = $self->obtain_path_info();
     my @pi = split m{/}, $pi;
     shift @pi while @pi and not$pi[0];
@@ -97,18 +97,18 @@ sub parse_path {
             $args{since} = $from;
         }
     } else {
-        $args{limit}   = $bryar->config->recent if $args{subblog};
+        $args{limit}   = $config->{recent} if $args{subblog};
     }
 
     return %args;
 }
 
 sub process_new_comment {
-    my ($self, $bryar, %params) = @_;
-    my ($doc) = $bryar->config->source->search($bryar, id => $params{id});
+    my ($self, $config, %params) = @_;
+    my ($doc) = $config->source->search($config, id => $params{id});
     $self->report_error("Couldn't find Doc $params{id}") unless $doc;
-    $bryar->config->source->add_comment(
-        $bryar,
+    $config->source->add_comment(
+        $config,
         document => $doc,
         author => $params{author},
         url => $params{url},
@@ -162,7 +162,7 @@ sub output {
 
 sub _etag {
     my ($self, $data) = @_;
-    my $req_tag = $self->get_header("If-None-Match");
+    my $req_tag = $self->get_header("If-None-Match") || '';
     my $etag = '"'.md5_hex($data).'"';
     $self->send_header('ETag', $etag);
     return $etag eq $req_tag;
@@ -185,10 +185,10 @@ sub report_error {
 }
 
 sub init {
-    my ($self, $bryar) = @_;
+    my ($self, $config) = @_;
     my $url = $self->obtain_url();
-    if (!$bryar->config->baseurl) {
-        $bryar->config->baseurl($url) if $url =~ s/((bryar|blosxom).cgi).*/$1/;
+    if (!$config->baseurl) {
+        $config->baseurl($url) if $url =~ s/((bryar|blosxom).cgi).*/$1/;
     }
 }
 =head1 LICENSE
@@ -196,15 +196,11 @@ sub init {
 This module is free software, and may be distributed under the same
 terms as Perl itself.
 
-
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
 
-
 =head1 SEE ALSO
-
-
 
 =cut
 

@@ -7,7 +7,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.6';
+our $VERSION = '2.8_01';
 
 =head1 NAME
 
@@ -46,9 +46,9 @@ For instance, my F<bryar.cgi> looks like this:
     #!/usr/bin/perl
     use Bryar;
     Bryar->go(
-         name => "Themes, Dreams and Crazy Schemes",
-         description => "Simon Cozens' weblog",
-         baseurl => "http://blog.simon-cozens.org/bryar.cgi"
+	 name => "Themes, Dreams and Crazy Schemes",
+	 description => "Simon Cozens' weblog",
+	 baseurl => "http://blog.simon-cozens.org/bryar.cgi"
     );
 
 You can get away without any configuration options, but it's probably
@@ -157,11 +157,12 @@ you're programming your blog to do clever stuff. Use C<go> instead.
 
 =cut
 
-
 sub new {
     my $class = shift;
+	my %args = (configclass => 'Bryar::Config', @_);
+	eval "require $args{configclass}" or die $@;
     bless {
-        config => Bryar::Config->new(@_)
+	config => $args{configclass}->new(@_)
     }, $class;
 }
 
@@ -178,36 +179,40 @@ interested in setting, see C<Bryar::Config>.
 sub go {
     my $self = shift;
     if (not ref $self) {
-        # We need to acquire a Bryar object.
-        my %args = @_;
+	# We need to acquire a Bryar object.
+	my %args = @_;
 
-        # If we're running under mod_perl, then we want to check to see
-        # if a datadir or config file has been specified.
-        if (exists $ENV{GATEWAY_INTERFACE} and 
-            $ENV{'GATEWAY_INTERFACE'} =~ /^CGI-Perl\//) {
-            require Apache;
-            my $r = Apache->request;
-            my $x;
-            $args{datadir} = $x if $x = $r->dir_config("BryarDatadir");
-            $args{config}  = $x if $x = $r->dir_config("BryarConfig");
-        }
-        $self = Bryar->new(%args);
+	# If we're running under mod_perl, then we want to check to see
+	# if a datadir or config file has been specified.
+	if (exists $ENV{GATEWAY_INTERFACE} and 
+	    $ENV{'GATEWAY_INTERFACE'} =~ /^CGI-Perl\//) {
+	    require Apache;
+	    my $r = Apache->request;
+	    my $x;
+	    $args{datadir} = $x if $x = $r->dir_config("BryarDatadir");
+	    $args{config}  = $x if $x = $r->dir_config("BryarConfig");
+	}
+	$self = Bryar->new(%args);
     }
-    my $frontend = $self->{config}->frontend();
-    $frontend->init($self) if $frontend->can("init");
+    my $frontend = $self->config->frontend();
+    $frontend->init($self->config) if $frontend->can("init");
 
     $self->_doit;
 }
 
 sub _doit {
     my $self = shift;
-    my %args = $self->{config}->frontend()->parse_args($self);
-    my @documents = $self->{config}->collector()->collect($self, %args);
+    my %args = $self->config->frontend()->parse_args($self);
+    my @documents = $self->config->collector()->collect($self->config, %args);
 
     $args{format} ||= "html";
 
-    $self->{config}->frontend()->output(
-        $self->{config}->renderer->generate($args{format}, $self, @documents)
+    $self->config->frontend()->output(
+	$self->config->renderer->generate(
+					$args{format},
+					$self,
+					@documents
+				)
     );
 }
 
@@ -221,42 +226,44 @@ year with blog posts attached. See the C<calendar> template for an example.
 my @mons = qw(x Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
 
 sub posts_calendar {
-        my ($self, $month, $year) = @_;
+	my ($self, $month, $year) = @_;
 
-        $month ||= (localtime)[4];
-        $year  ||= (localtime)[5];
+	$month ||= (localtime)[4];
+	$year  ||= (localtime)[5];
 
-        my $this_month = timegm(0, 0, 0, 1, $month, $year);
-        my @documents = $self->{config}->collector->collect($self,
-                since => $this_month
-        );
+	my $this_month = timegm(0, 0, 0, 1, $month, $year);
 
-        $month++;
-        $year += 1900;
+	my @documents = $self->config->collector->collect(
+		$self->config,
+		since => $this_month
+	);
 
-        # make an hash with keys the days with a post
-        my %posts = map { (gmtime($_->{epoch}))[3] => $_->{id} } @documents;
+	$month++;
+	$year += 1900;
 
-        my @m = calendar($month, $year);
-        my @month;
-        foreach my $week (@m) {
-                my @weekdays;
-                foreach my $day (@$week) {
-                        my $d = { day => $day };
-                        if ($day and exists $posts{$day}) {
-                                $d->{idlink} = $posts{$day};
-                                $d->{link} = "$year/$mons[$month]/$day";
-                        }
-                        push(@weekdays, $d);
-                }
+	# make an hash with keys the days with a post
+	my %posts = map { ((gmtime($_->{epoch}))[3] - 1) => $_->{id} } @documents;
 
-                # mark the first day of the week, if it exists
-                $weekdays[0]{sunday} = 1 if defined $weekdays[0]{day};
+	my @m = calendar($month, $year);
+	my @month;
+	foreach my $week (@m) {
+		my @weekdays;
+		foreach my $day (@$week) {
+			my $d = { day => $day };
+			if ($day and exists $posts{$day}) {
+				$d->{idlink} = $posts{$day};
+				$d->{link} = "$year/$mons[$month]/$day";
+			}
+			push(@weekdays, $d);
+		}
 
-                push(@month, \@weekdays);
-        }
+		# mark the first day of the week, if it exists
+		$weekdays[0]{sunday} = 1 if defined $weekdays[0]{day};
 
-        return @month;
+		push(@month, \@weekdays);
+	}
+
+	return { year => $year, month => $month, calendar => \@month };
 }
 
 =head2 config

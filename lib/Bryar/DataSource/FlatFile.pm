@@ -35,14 +35,14 @@ Returns all documents making up the blog.
 =cut
 
 sub all_documents {
-    my ($self, $bryar) = @_;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
+    my ($self, $config) = @_;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
     my $where = cwd;
-    chdir($bryar->{config}->datadir); # Damn you, F::F::R.
+    chdir($config->datadir); # Damn you, F::F::R.
     my @docs = map { $self->make_document($_) }
                 File::Find::Rule->file()
                                 ->name($self->entry_glob)
-                                ->maxdepth($bryar->{config}->depth)
+                                ->maxdepth($config->depth)
                                 ->in(".");
     chdir($where);
     return @docs;
@@ -78,17 +78,17 @@ A more advanced search for specific documents
 =cut
 
 sub search {
-    my ($self, $bryar, %params) = @_;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
+    my ($self, $config, %params) = @_;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
     my $was = cwd;
-    my $where = $bryar->{config}->datadir."/";
+    my $where = $config->datadir."/";
     if ($params{subblog}) { $where .= $params{subblog}; }
     chdir($where); # Damn you, F::F::R.
     
     my $find = File::Find::Rule->file();
     if ($params{id}) { $find->name($self->id_to_file($params{id})) }
                 else { $find->name($self->entry_glob) }
-    $find->maxdepth($bryar->{config}->depth);
+    $find->maxdepth($config->depth);
     if ($params{since})   { $find->mtime(">".$params{since}) }
     if ($params{before})  { $find->mtime("<".$params{before}) }
     my @docs;
@@ -178,11 +178,11 @@ Records the given comment details.
 =cut
 
 sub add_comment {
-    my ($self, $bryar) = (shift, shift);
+    my ($self, $config) = (shift, shift);
     my %params = @_;
     my $file = $params{document}->id.".comments";
     # This probably fails with subblogs, but I don't use them.
-    chdir $bryar->{config}->datadir."/";
+    chdir $config->datadir."/";
     open OUT, ">> $file" or die $!;
     delete $params{document};
     s/\n/\r/g for values %params;

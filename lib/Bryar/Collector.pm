@@ -33,16 +33,16 @@ by the user.
 
 sub collect {
     my $class = shift;
-    my $bryar = shift;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
+    my $config = shift;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
     my %args = @_;
-    $bryar->{arguments} = \%args;
+    $config->{arguments} = \%args;
     delete $args{format}; # Not interesting
     if (! keys %args) { # Default operation
-        return $class->collect_current($bryar);
+        return $class->collect_current($config);
     }
     my @docs = sort {$b->epoch <=> $a->epoch }
-        $bryar->{config}->source->search($bryar, %args);
+        $config->source->search($config, %args);
     return @docs;
 }
 
@@ -57,12 +57,12 @@ Return the latest set of documents.
 
 sub collect_current {
     my $self = shift;
-    my $bryar = shift;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
+    my $config = shift;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
     my @docs = sort {$b->epoch <=> $a->epoch }
-                $bryar->{config}->source->search(
-                    $bryar,
-                    limit => $bryar->{config}->recent());
+                $config->source->search(
+                    $config,
+                    limit => $config->recent());
     return @docs;
 }
 
@@ -77,11 +77,8 @@ terms as Perl itself.
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
 
-
 =head1 SEE ALSO
 
-
-
-
+=cut
 
 1;

@@ -189,16 +189,12 @@ sub comments {
 This module is free software, and may be distributed under the same
 terms as Perl itself.
 
-
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
 
-
 =head1 SEE ALSO
 
-
-
-
+=cut
 
 1;

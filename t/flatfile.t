@@ -10,7 +10,7 @@ use Bryar;
 
 my $bryar = new Bryar(datadir=>"./t/");
 
-my @documents = $bryar->{config}->source->all_documents($bryar);
+my @documents = $bryar->{config}->source->all_documents($bryar->config);
 is(@documents, 2, "We got two documents");
 is($documents[0]->title, "First entry", "First title correct");
 like($documents[0]->content, qr/flatfile format/, "First content correct");

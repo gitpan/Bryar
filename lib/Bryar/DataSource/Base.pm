@@ -31,9 +31,9 @@ Returns all documents making up the blog.
 =cut
 
 sub all_documents {
-    my ($self, $bryar) = @_;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
-    $bryar->{config}->frontend->error("Bad coder. No biscuit",
+    my ($self, $config) = @_;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
+    $config->frontend->error("Bad coder. No biscuit",
     "Looks like the programmer used an abstract base class for their
     datasource. That trick obviously won't work.");
 
@@ -44,7 +44,7 @@ sub all_documents {
 
 =head2 search
 
-    $self->search($bryar, %params)
+    $self->search($config, %params)
 
 A more advanced search for specific documents. Here, we B<do> implement
 the search the slow, stupid way, so you can inherit from this if you're
@@ -66,10 +66,10 @@ Parameters you want to look out for:
 =cut
 
 sub search {
-    my ($self, $bryar, %params) = @_;
-    croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
+    my ($self, $config, %params) = @_;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
 
-    my @docs = $self->all_documents($bryar);
+    my @docs = $self->all_documents($config);
     my @out_docs;
 
     for my $doc (@docs) {
@@ -89,7 +89,7 @@ sub search {
 
 =head2 add_comment
 
-    Class->add_comment($bryar,
+    Class->add_comment($config,
                        document => $document,
                          author => $author,
                             url => $url,

@@ -69,7 +69,7 @@ Get blogging!
 =cut
 
 sub search {
-    my ($self, $bryar, %params) = @_;
+    my ($self, $config, %params) = @_;
     return Bryar::Document::DBI->retrieve($params{id}) if $params{id};
 
     my %condition = (1 => 1); # To make sure we have something
@@ -85,6 +85,6 @@ sub search {
 sub _epoch2ts { Time::Piece->new(shift)->strftime("%Y%m%d%H%M%S"); }
 
 sub add_comment { 
-    my ($self, $bryar, %params) = @_; 
+    my ($self, $config, %params) = @_; 
     Bryar::Document::Comment->new(\%params);
 }

@@ -40,8 +40,8 @@ Returns a page from templates and documents provided by the Bryar object.
 sub _tt {
     my ($class, $bryar) = @_;
     my @path = $bryar->{config}->datadir;
-    unshift @path, $bryar->{config}->datadir."/".$bryar->{arguments}->{subblog} 
-        if exists $bryar->{arguments}->{subblog};
+    unshift @path, $bryar->{config}->datadir."/".$bryar->{config}->{arguments}->{subblog} 
+        if exists $bryar->{config}->{arguments}->{subblog};
         
     @path = map { $_, $_."/templates" } @path;
     return Template->new({
@@ -106,24 +106,17 @@ sub generate {
     return ($ct, $class->_tt_process($file, @_));
 }
 
-
-
-
 =head1 LICENSE
 
 This module is free software, and may be distributed under the same
 terms as Perl itself.
 
-
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
 
-
 =head1 SEE ALSO
 
-
-
-
+=cut
 
 1;
