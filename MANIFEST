@@ -3,8 +3,10 @@ lib/Bryar/Collector.pm
 lib/Bryar/Comment.pm
 lib/Bryar/Config.pm
 lib/Bryar/DataSource/Base.pm
+lib/Bryar/DataSource/DBI.pm
 lib/Bryar/DataSource/FlatFile.pm
 lib/Bryar/Document.pm
+lib/Bryar/Frontend/Base.pm
 lib/Bryar/Frontend/CGI.pm
 lib/Bryar/Frontend/Mod_perl.pm
 lib/Bryar/Renderer/TT.pm
@@ -23,3 +25,4 @@ t/flatfile.t
 t/renderer.t
 t/templates/template.html
 bryar-newblog
+META.yml                                Module meta-data (added by MakeMaker)

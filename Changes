@@ -1,5 +1,9 @@
 Revision history for Perl extension Bryar.
 
+2.0 - Sat Aug 16 13:42:15 BST 2003
+    - Experimental Mod_perl handler
+    - Experimental DBI driver
+
 1.2 - Sat Jun 14 22:50:06 BST 2003
     - Added support for comments.
 

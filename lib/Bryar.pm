@@ -5,7 +5,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.2';
+our $VERSION = '2.0';
 
 =head1 NAME
 
@@ -34,9 +34,12 @@ web server. Then do what it tells you.
 The long answer:
 
 The only front-end working in this release is the CGI one; please don't
-try this in mod_perl yet. You'll need to write a little driver script
-which sets some parameters. For instance, my F<bryar.cgi> looks like
-this:
+try this in mod_perl yet. C<Bryar::Frontend::Mod_perl> is experimental,
+and while I'm running it on my live server, it doesn't actually offer
+any advantages yet.
+
+You'll need to write a little driver script which sets some parameters.
+For instance, my F<bryar.cgi> looks like this:
 
     #!/usr/bin/perl
     use Bryar;
@@ -67,6 +70,7 @@ in a F<bryar.conf>, and then would be able to use C<< Bryar->go() >>
 with no further parameters.
 
 For details of interesting parameters, look in L<Bryar::Config>.
+See also L<Bryar::DataSource::DBI> for how to database-back the blog.
 
 Now you will need some templates to make your new blog look nice and
 shiny. You can copy in the F<template.rss> and F<template.html> which

@@ -42,7 +42,7 @@ our %default_args = (
         collector => "Bryar::Collector",
         frontend => ((exists $ENV{GATEWAY_INTERFACE} and 
                       $ENV{'GATEWAY_INTERFACE'} =~ /^CGI-Perl\//)
-                    ? "Bryar::Frontend::mod_perl"
+                    ? "Bryar::Frontend::Mod_perl"
                     : "Bryar::Frontend::CGI")
 );
 

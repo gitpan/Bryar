@@ -63,6 +63,7 @@ sub collect_current {
                 $bryar->{config}->source->search(
                     $bryar,
                     limit => $bryar->{config}->recent());
+    return @docs;
 }
 
 
