@@ -18,6 +18,9 @@ is_deeply($object->{frontend},  "Bryar::Frontend::CGI",
 is_deeply($object->{name},  "My web log", 
     "Constructor set \$object->{name} OK");
 
+is( $object->description, "Put a better description here" );
+diag( $object->collector() );
+diag( $object->recent() );
 
 is_deeply($object->{baseurl}, '', 
     "Constructor set \$object->{baseurl} OK");

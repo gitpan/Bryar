@@ -113,6 +113,19 @@ sub timepiece {
     return Time::Piece->new($self->{epoch});
 }
 
+=head2 datetime
+
+Returns the date of the document as a DateTime object
+
+=cut
+
+sub datetime {
+    my $self = shift;
+    return DateTime->from_epoch( epoch => $self->{epoch}, time_zone => "local" );
+}
+
+
+
 =head2 category
 
 	$self->category();    # Get category
@@ -182,6 +195,29 @@ Returns a list of L<Bryar::Comment> objects attached to this document.
 sub comments {
     my $self = shift;
     return @{$self->{comments}};
+}
+
+=head2 excerpt
+	
+	my $excerpt = $self->excerpt(20); # get a 20 word excerpt
+	my $excerpt = $self->excerpt( );  # get excerpt as long as the excerpt_words config variable
+
+=cut
+
+sub excerpt {
+	my $self = shift;
+	my $num_words = shift || 40;
+
+	my $content = $self->{content};
+
+	# NOTE: I lifted this from MT, but in reality, i will be making it more flexible and neater.  
+	# Now if only this document had some sense of the Bryar environment so it could pull the 
+	# default $num_words from the config.
+	
+	# $text = remove_html($text);
+    my @words = split /\s+/, $content;
+    my $max_words = @words > $num_words ? $num_words : @words;
+    return join ' ', @words[0..$max_words-1];
 }
 
 =head1 LICENSE

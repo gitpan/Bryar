@@ -1,13 +1,16 @@
 package Bryar;
+
 use Bryar::Config;
 use Time::Local;
 use Bryar::Comment;
 use Calendar::Simple;
+use DateTime;
+
 use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.8_01';
+our $VERSION = '2.8_02';
 
 =head1 NAME
 
@@ -196,20 +199,25 @@ sub go {
     }
     my $frontend = $self->config->frontend();
     $frontend->init($self->config) if $frontend->can("init");
-
-    $self->_doit;
+    
+	$self->_doit;
 }
 
 sub _doit {
     my $self = shift;
-    my %args = $self->config->frontend()->parse_args($self);
+    my %args = $self->config->frontend()->parse_args($self->config, @_);
+	$self->{arguments} = \%args;
+
     my @documents = $self->config->collector()->collect($self->config, %args);
 
     $args{format} ||= "html";
 
+	use Data::Dumper;
+	print STDERR Dumper($self->arguments), "\n";
+
     $self->config->frontend()->output(
-	$self->config->renderer->generate(
-					$args{format},
+		$self->config->renderer->generate(
+					$self->{arguments}{format},
 					$self,
 					@documents
 				)
@@ -218,31 +226,32 @@ sub _doit {
 
 =head2 posts_calendar
 
+TODO:  Move this out to something that is more flexible.
+
 Return a data structure containing the days and weeks of a given month and
 year with blog posts attached. See the C<calendar> template for an example.
 
 =cut
 
-my @mons = qw(x Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
-
 sub posts_calendar {
 	my ($self, $month, $year) = @_;
 
-	$month ||= (localtime)[4];
-	$year  ||= (localtime)[5];
+    my $today = DateTime->today( time_zone => $self->config->{time_zone} );
 
-	my $this_month = timegm(0, 0, 0, 1, $month, $year);
+	$month ||= $today->month(); 
+	$year  ||= $today->year(); 
+
+	my $this_month = DateTime->new( month => $month, year => $year,  time_zone => $self->config->{time_zone} );
 
 	my @documents = $self->config->collector->collect(
 		$self->config,
-		since => $this_month
+		since => $this_month->epoch()
 	);
 
-	$month++;
-	$year += 1900;
-
 	# make an hash with keys the days with a post
-	my %posts = map { ((gmtime($_->{epoch}))[3] - 1) => $_->{id} } @documents;
+	my %posts = map { DateTime->from_epoch( epoch => $_->{epoch},  time_zone => $self->config->{time_zone} )->day() => $_->{id} } @documents;
+use Data::Dumper;
+print STDERR Dumper(\%posts);
 
 	my @m = calendar($month, $year);
 	my @month;
@@ -252,7 +261,7 @@ sub posts_calendar {
 			my $d = { day => $day };
 			if ($day and exists $posts{$day}) {
 				$d->{idlink} = $posts{$day};
-				$d->{link} = "$year/$mons[$month]/$day";
+				$d->{link} = "$year/" . $this_month->month_abbr() . "/$day";
 			}
 			push(@weekdays, $d);
 		}
@@ -263,7 +272,7 @@ sub posts_calendar {
 		push(@month, \@weekdays);
 	}
 
-	return { year => $year, month => $month, calendar => \@month };
+	return { year => $year, month => $month, monthname => $this_month->month_name(), calendar => \@month };
 }
 
 =head2 config

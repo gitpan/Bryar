@@ -71,7 +71,7 @@ sub file_to_id { my $file = $_[1]; $file =~ s/.txt$//; $file; }
 
 =head2 search
 
-    $self->search($bryar, %params)
+    $self->search($bryar, $config, %params)
 
 A more advanced search for specific documents
 

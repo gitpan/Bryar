@@ -70,7 +70,7 @@ sub parse_args {
         $args{content} = $search if $search =~ /\S{3,}/; # Avoid trivials.
     }
     for (qw(comments format)) {
-        $args{$_} = $params{$_} if exists $params{$_};
+		$args{$_} = $params{$_} if exists $params{$_};
     }
     $self->process_new_comment($config, %params) if $params{newcomment};
     return %args;

@@ -53,6 +53,7 @@ sub collect {
 
 Return the latest set of documents.
 
+TODO: make this configurable as well, to return X number or all posts X units of time back.
 =cut
 
 sub collect_current {

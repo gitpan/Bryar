@@ -89,11 +89,25 @@ sub register_format {
     $formats{$format} = [$filename, $content_type];
 }
 
+# display formats
 __PACKAGE__->register_format( html => "template.html", "text/html" );
-__PACKAGE__->register_format( atom => "template.atom", "application/atom+xml" );
+
+# TODO: put formats in a formats/ folder by default, but add a config option
+# for their location.
+
+# syndication formats (full posts)
+__PACKAGE__->register_format( atom => "template.atom", "application/atom+xml" ); # "application/atom+xml" );
 __PACKAGE__->register_format( xml  => "template.rss",  "application/rdf+xml");
 __PACKAGE__->register_format( rss  => "template.rss",  "application/rdf+xml");
 __PACKAGE__->register_format( rdf  => "template.rss",  "application/rdf+xml");
+__PACKAGE__->register_format( rss2 => "template.rss2", "application/rss+xml");
+
+# syndication formats (excerpted posts)
+__PACKAGE__->register_format( atomexcerpt => "template.atomexcerpt", "application/atom+xml" );
+__PACKAGE__->register_format( xmlexcerpt  => "template.rssexcerpt", "application/rdf+xml");
+__PACKAGE__->register_format( rssexcerpt  => "template.rssexcerpt", "application/rdf+xml");
+__PACKAGE__->register_format( rdfexcerpt  => "template.rssexcerpt", "application/rdf+xml");
+__PACKAGE__->register_format( rss2excerpt => "template.rss2excerpt", "application/rss+xml");
 
 sub generate {
     my $class = shift;

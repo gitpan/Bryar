@@ -23,12 +23,15 @@ name : My Bryar Weblog!
 description : A blog without a more useful description
 baseurl : http://where.will.i.be/
 datadir : @{[ cwd() ]}
+author : your name here
 EOC
 
-write_file("1.txt", <<EOC);
-My first blog post!
+write_file("bryar_first_post.txt", <<EOC);
+My first Bryar blog post!
 
-<P>First post! First post!</P>
+<p>First post! First post!</p>
+<p>Wow, this Bryar thing is neat, huh?  This space should fill up with helpful 
+hints on what else you can do with Bryar.</p>
 EOC
 
 write_file("template.html", <<'EOC');
@@ -67,18 +70,18 @@ MACRO comment_form(entry) BLOCK;
 END;
 
 MACRO permalink(entry, params) BLOCK;
- '<a href="';
  bryar.config.baseurl;
  '/id_';
  entry.id;
  "?" _ params IF params;
- '">';
 END;
 
 MACRO comments(entry) BLOCK;
- permalink(entry, "comments=1");
+ '<a href="';
+  permalink(entry, "comments=1");
+ '" title="Leave or view comments on \'entry.title\'">';
  entry.comments.size || 0;
- " Comments</A>";
+ " Comments</a>";
  IF bryar.arguments.comments;
      "</P>";
 
@@ -106,7 +109,7 @@ END;
 MACRO google_link(query, label) BLOCK;
  '<a href="http://www.google.com/search?q=';
  query | html | uri;
- '">'; 
+ '" title="Search Google for more stuff link this...">'; 
  label; 
  "</a>";
 END;
@@ -123,32 +126,34 @@ END;
 
 [% INCLUDE head.html %]
 
-[% INCLUDE calendar %]
-
 [% FOREACH entry = documents;
     entry_time = entry.timepiece;
     IF entry == documents.first or entry_time.ymd != previous.timepiece.ymd %]
-    <span class="blosxomDate"> [% day(entry_time) %] </span>
+    <div class="bryarDate"> [% day(entry_time) %] </div>
     [% END %]
     [% previous = entry %]
 
-    <p class="blosxomEntry"><a name="[%entry.id%]">
-    <span class="blosxomTitle"><b>[%entry.title%]</b></span>
-    </a><br/>
-    <span class="blosxomBody">
-    [% entry.content %]
-</span><br />
+    <div class="bryarEntry">
+        <a name="[%entry.id%]"></a>
+            <h2 class="bryarTitle">[%entry.title%]</h2>
 
-    <span class="blosxomTime">Posted at [%entry_time.time%]</span> 
+            [% entry.content %]
+
+            <br />
+
+    <div class="bryarEntrySource">Posted at 
+        <span class="bryarEntryTime">[%entry_time.time%]</span> 
+        by <span class="bryarEntryAuthor">[% bryar.config.author %]</span>
+    </div> 
     
-    | 
-     [% permalink(entry, "") %] #</a>
-    | 
-     [% google_link(entry.title, "G") %]
-    |
-    [% comments(entry) %]
+    <ul class="bryarEntryLinks">     
+        <li><a href="[% permalink(entry, "") %]" title="Permanent link to '[% entry.title %]'">#</a></li>
+        <li><a href="http://www.technorati.com/cosmos/search.html?rank=&url=[% permalink(entry, "") %]"><img src="/notebook/images/technorati_bubble.gif" width="19px" height="18px" border="0" align="middle" title="Search Technorati Cosmos..." /></a></li>
+        <li>[% google_link(entry.title, "G") %]</li>
+        <li>[% comments(entry) %]</li>
+     </ul>
 
-</p>
+    </div>
 [% END %]
 
 [% INCLUDE foot.html %]
@@ -158,17 +163,48 @@ write_file("head.html", <<EOC);
 <html>
 
 <head>
-<title>[% bryar.config.name %]</title>
-<link rel="alternate" type="application/rss+xml" title="RSS" href="$url/xml" />
+    <title>[% bryar.config.name %]</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="[% bryar.config.url %]?format=rss" />
+    <link rel="alternate" type="application/atom+xml" title="ATOM" href="[% bryar.config.url %]?format=atom" />
 </head>
 
-<body bgcolor="#ffffff" text="#222222">
-<H1> [% bryar.config.name %]</H1>
+<body>
+<div id="bryarHeader">
+    <h1>[% bryar.config.name %]</h1>
+</div>
+
 EOC
 
 write_file("foot.html", <<EOC);
-<HR> <I> Powered by Bryar! </I> <FORM>Search: <INPUT name="search"></FORM>
-</body></HTML>
+<hr /> 
+
+<em>Powered by Bryar!</em> 
+
+<form>Search &quot;[% bryar.config.name %]&quot;: <br />
+   <input name="search" type="text" class="bryarSingleLineBox">
+   <input name="submit" type="submit" value="Search" class="bryarButton" />
+</form>
+<hr />
+Subscribe to full text feeds via:
+<a href="?format=atom" content-type="application/atom+xml">ATOM</a>
+ | 
+<a href="?format=rss2" content-type="application/rdf+xml">RSS2</a>
+ |
+<a href="?format=rss" content-type="application/rdf+xml">RSS</a>
+<br />
+Subscribe to preview feeds via: 
+<a href="?format=atom_excerpt" content-type="application/atom+xml">ATOM</a>
+ |
+<a href="?format=rss2_excerpt" content-type="application/rdf+xml">RSS2</a>
+ |
+<a href="?format=rss_excerpt" content-type="application/rdf+xml">RSS</a>
+<br />
+
+<a href="http://www.feedvalidator.org/check.cgi?url=http://bryar.multiply.org/notebook/bryar.cgi?format=atom"><img src="/notebook/images/valid-atom.png" alt="[Valid Atom]" title="Validate my Atom feed" width="88" height="31" border="0" /></a>
+
+</body>
+</html>
+
 EOC
 
 write_file("template.rss", <<EOC);
@@ -211,6 +247,27 @@ write_file("template.rss", <<EOC);
 </rdf:RDF>
 EOC
 
+write_file("template.rss2", <<EOC);
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:admin="http://webns.net/mvcb/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>[% bryar.config.name %]</title>
+<link>[% bryar.config.baseurl %]</link>
+<description>[% bryar.config.description %]</description>
+<dc:language>en-us</dc:language>
+<admin:generatorAgent rdf:resource="http://bryar.multiply.org/" />
+    <dc:date>[%documents.first.timepiece.datetime%]-05:00</dc:date>
+    <items>
+      <rdf:Seq>
+      [% FOREACH item=documents %]
+      <rdf:li rdf:resource="[%bryar.config.baseurl _ "/id_" _ item.id %]"/>
+      [% END %]
+      </rdf:Seq>
+    </items>
+  </channel>
+</rss>
+EOC
+
 write_file("template.atom", <<EOC);
 <?xml version="1.0" encoding="utf-8"?>
 <feed version="0.3" xmlns="http://purl.org/atom/ns#">
@@ -233,7 +290,7 @@ write_file("template.atom", <<EOC);
     <issued>[% item.timepiece.datetime %][% FILTER format("%03d") %][% hours  %][%END%]:[% FILTER format("%02d") %][% minutes %][%END%]</issued>
     <modified>[% item.timepiece.datetime %][% FILTER format("%03d") %][% hours  %][%END%]:[% FILTER format("%02d") %][% minutes %][%END%]</modified>
     <summary type="text/plain"> [% FILTER truncate(252) %]
-            [%  item.content | replace('<.*?>', '') %]
+            [%  item.excerpt(bryar.config.excerpt_words) %]
         [% END %]
     </summary>
     <content type="text/html" mode="escaped" xml:lang="en" xml:base="[% bryar.config.baseurl %]">
