@@ -41,13 +41,33 @@ sub all_documents {
     chdir($bryar->{config}->datadir); # Damn you, F::F::R.
     my @docs = map { $self->make_document($_) }
                 File::Find::Rule->file()
-                                ->name("*.txt")
+                                ->name($self->entry_glob)
                                 ->maxdepth($bryar->{config}->depth)
                                 ->in(".");
     chdir($where);
     return @docs;
 }
 
+=head2 entry_glob
+
+Returns a glob pattern which matches blog posts. This defaults to C<*.txt>.
+
+=cut
+
+sub entry_glob { "*.txt" }
+
+=head2 id_to_file
+
+Takes a Bryar ID, converts it to a file name.
+
+=head2 file_to_id
+
+Vice versa.
+
+=cut
+
+sub id_to_file { return $_[1].".txt" }
+sub file_to_id { my $file = $_[1]; $file =~ s/.txt$//; $file; }
 
 =head2 search
 
@@ -66,8 +86,8 @@ sub search {
     chdir($where); # Damn you, F::F::R.
     
     my $find = File::Find::Rule->file();
-    if ($params{id}) { $find->name("$params{id}.txt") }
-                else { $find->name("*.txt") }
+    if ($params{id}) { $find->name($self->id_to_file($params{id})) }
+                else { $find->name($self->entry_glob) }
     $find->maxdepth($bryar->{config}->depth);
     if ($params{since})   { $find->mtime(">".$params{since}) }
     if ($params{before})  { $find->mtime("<".$params{before}) }
@@ -103,7 +123,6 @@ sub make_document {
     my $when = (stat $file)[9];
     local $/ = "\n";
     my $who = getpwuid((stat $file)[4]);
-    $file =~ s/\.txt$//;
     my $title = <$in>;
     chomp $title;
     local $/;
@@ -122,7 +141,7 @@ sub make_document {
         content  => $content,
         epoch    => $when,
         author   => $who,
-        id       => $file,
+        id       => $self->file_to_id($file),
         category => $category,
         comments => $comments
     );

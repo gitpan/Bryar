@@ -90,10 +90,10 @@ sub register_format {
 }
 
 __PACKAGE__->register_format( html => "template.html", "text/html" );
-__PACKAGE__->register_format( atom => "template.atom", "text/xml" );
-__PACKAGE__->register_format( xml  => "template.rss",  "text/xml" );
-__PACKAGE__->register_format( rss  => "template.rss",  "text/xml" );
-__PACKAGE__->register_format( rdf  => "template.rss",  "text/xml" );
+__PACKAGE__->register_format( atom => "template.atom", "application/atom+xml" );
+__PACKAGE__->register_format( xml  => "template.rss",  "application/rdf+xml");
+__PACKAGE__->register_format( rss  => "template.rss",  "application/rdf+xml");
+__PACKAGE__->register_format( rdf  => "template.rss",  "application/rdf+xml");
 
 sub generate {
     my $class = shift;

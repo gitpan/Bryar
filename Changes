@@ -1,5 +1,9 @@
 Revision history for Perl extension Bryar.
 
+2.4 - Sun Feb  8 15:12:21 GMT 2004
+    - Get default MIME types right
+    - Refactor FlatFile to allow selecting post extensions, etc.
+
 2.3 - Fri Jan 23 13:21:18 GMT 2004
     - Added ETag support from Marco d'Itri
     - Added calendars, again from Marco d'Itri
