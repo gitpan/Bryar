@@ -1,5 +1,11 @@
 Revision history for Perl extension Bryar.
 
+2.1 - Thu Dec 11 13:55:09 GMT 2003
+    - Bryar::DataSource::Base now returns a true value, which is always
+      handy
+    - Added a dated flatfile data source.
+    - Tweaks to the test suite to allow a runthrough without mod_perl
+
 2.0 - Sat Aug 16 13:42:15 BST 2003
     - Experimental Mod_perl handler
     - Experimental DBI driver

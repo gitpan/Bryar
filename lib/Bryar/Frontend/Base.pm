@@ -76,9 +76,9 @@ sub parse_path {
     #...
 
     my %args;
-    if ($pi[-1] eq "xml")     { $args{xml} = 1; pop @pi; }
+    if (defined $pi[-1] and $pi[-1] eq "xml")     { $args{xml} = 1; pop @pi; }
     if (defined $pi[-1] and $pi[-1] =~ /id_(.*)/) { $args{id} = $1; pop @pi; }
-    if ($pi[0] and $pi[0] =~ /^([a-zA-Z]\w*)/) { # We have a subblog
+    if (defined $pi[0] and $pi[0] =~ /^([a-zA-Z]\w*)/) { # We have a subblog
         $args{subblog} = $1;
         shift @pi;
     }
@@ -182,6 +182,6 @@ Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
 
 
 
-
+=cut
 
 1;

@@ -5,7 +5,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.0';
+our $VERSION = '2.1';
 
 =head1 NAME
 
@@ -214,6 +214,7 @@ useful as the blog object is passed into the templates by default.
 =cut
 
 sub config { return $_[0]->{config} }
+sub arguments {return $_[0]->{arguments} }
 
 =head1 LICENSE
 
