@@ -209,8 +209,41 @@ write_file("template.rss", <<EOC);
 </rdf:RDF>
 EOC
 
+write_file("template.atom", <<EOC);
+<?xml version="1.0" encoding="utf-8"?>
+<feed version="0.3" xmlns="http://purl.org/atom/ns#">
+  <title>[% bryar.config.name %]</title>
+  <link rel="alternate" type="text/html"
+   href="[% bryar.config.baseurl %]"/>
+  <modified>[%documents.first.timepiece.datetime%][% FILTER format("%03d") %][% documents.first.timepiece.tzoffset / 3600 %][%END%]:00</modified>
+  <author>
+    <name>[% bryar.config.author %]</name>
+  </author>
+[% FOREACH item = documents %]
+  <entry>
+    <title>[% item.title %]</title>
+    <link rel="alternate" type="text/html"
+     href="[%bryar.config.baseurl _ "/id_" _ item.id %]"/>
+    [% idURL = bryar.config.baseurl | replace('http://', '') | replace('/.*', '') %]
+    <id>tag:[% idURL _ "," _ item.timepiece.year _":id_" _ item.id %]</id>
+    [% hours = item.timepiece.tzoffset / 3600 %]
+    [% minutes = (item.timepiece.tzoffset % (hours * 60 * 60)) / 60 %]
+    <issued>[% item.timepiece.datetime %][% FILTER format("%03d") %][% hours  %][%END%]:[% FILTER format("%02d") %][% minutes %][%END%]</issued>
+    <modified>[% item.timepiece.datetime %][% FILTER format("%03d") %][% hours  %][%END%]:[% FILTER format("%02d") %][% minutes %][%END%]</modified>
+    <summary type="text/plain"> [% FILTER truncate(252) %]
+            [%  item.content | replace('<.*?>', '') %]
+        [% END %]
+    </summary>
+    <content type="text/html" mode="escaped" xml:lang="en" xml:base="[% bryar.config.baseurl %]">
+      <![CDATA[ [% item.content %] ]]>
+    </content>
+  </entry>
+[% END %]
+</feed>
+EOC
+
 chmod 0644, $_ for ("bryar.conf", "1.txt", "head.html", "foot.html",
-                    "template.html","template.rss");
+                    "template.html","template.rss", "template.atom");
 print "\nDone. Now you want to probably customize 'bryar.conf'.\n";
 print "You should probably also customize template.html, head.html and foot.html\n";
 print "Then point your browser at bryar.cgi, and get blogging!\n";

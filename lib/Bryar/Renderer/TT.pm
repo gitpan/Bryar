@@ -12,8 +12,7 @@ Bryar::Renderer::TT - Render a blog page with Template Toolkit
 
 =head1 SYNOPSIS
 
-	$self->generate_html(...);
-	$self->generate_rss(...);
+	my ($content_type, $output) = $self->generate_html(...);
 
 =head1 DESCRIPTION
 
@@ -30,12 +29,11 @@ from the L<Bryar::Config|Bryar::Config>.
 
 =head1 METHODS
 
-=head2 generate_html
+=head2 generate
 
-    $self->generate_html($bryar, @documents)
+    $self->generate($format, $bryar, @documents)
 
-Returns a HTML page from templates and documents provided by the Bryar
-object.
+Returns a page from templates and documents provided by the Bryar object.
 
 =cut
 
@@ -74,22 +72,38 @@ EOF
     return $output;
 }
 
-sub generate_html {
-    my $class = shift;
-    $class->_tt_process("template.html", @_);
-}
+our %formats;
 
-=head2 generate_rss
+=head2 register_format
 
-    Bryar::Renderer::TT->generate_rss
+    $class->register_format($format, $filename, $content_type);
 
-This is a useful method, and should have a useful description.
+Registers a new format that Bryar is capable of producing. This can be used
+both for spitting out RSS/RDF/ATOM/whatever and for skinning the blog with
+alternate templates.
 
 =cut
 
-sub generate_rss {
+sub register_format {
+    my ($self, $format, $filename, $content_type) = @_;
+    $formats{$format} = [$filename, $content_type];
+}
+
+__PACKAGE__->register_format( html => "template.html", "text/html" );
+__PACKAGE__->register_format( atom => "template.atom", "text/xml" );
+__PACKAGE__->register_format( xml  => "template.rss",  "text/xml" );
+__PACKAGE__->register_format( rss  => "template.rss",  "text/xml" );
+__PACKAGE__->register_format( rdf  => "template.rss",  "text/xml" );
+
+sub generate {
     my $class = shift;
-    $class->_tt_process("template.rss", @_);
+    my $format = shift;
+    $_[0]->config->frontend->report_error("Unknown format",
+        "Can't output a blog in format '$format', don't know what it is.")
+        if !exists $formats{$format};
+
+    my ($file, $ct) = @{$formats{$format}};
+    return ($ct, $class->_tt_process($file, @_));
 }
 
 

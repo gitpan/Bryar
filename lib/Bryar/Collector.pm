@@ -37,7 +37,7 @@ sub collect {
     croak "Must pass in a Bryar object" unless UNIVERSAL::isa($bryar, "Bryar");
     my %args = @_;
     $bryar->{arguments} = \%args;
-    delete $args{xml}; # Not interesting
+    delete $args{format}; # Not interesting
     if (! keys %args) { # Default operation
         return $class->collect_current($bryar);
     }

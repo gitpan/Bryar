@@ -5,7 +5,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.1';
+our $VERSION = '2.2';
 
 =head1 NAME
 
@@ -117,6 +117,17 @@ And combine subblogging with RSS:
 
     http://your.blog.com/bryar.cgi/otherblog/xml
 
+These are actually blosxom backwardly-compatible versions of the Bryar:
+
+    http://your.blog.com/bryar.cgi?format=xml
+
+There's also an Atom feed:
+
+    http://your.blog.com/bryar.cgi?format=atom
+
+And you can write your own formats; see the renderer class documentation for
+how.
+
 Each blog post will have a unique ID; you can get to an individual post
 by specifying its ID:
 
@@ -191,19 +202,13 @@ sub _doit {
     my %args = $self->{config}->frontend()->parse_args($self);
     my @documents = $self->{config}->collector()->collect($self, %args);
 
-    # XML or HTML?
-    my $out;
-    my $ct = "text/html";
-    if (exists $args{xml}) {
-        $out = $self->{config}->renderer->generate_rss($self, @documents);
-        $ct = "text/xml";
-    } else {
-        $out = $self->{config}->renderer->generate_html($self, @documents);
-    }
+    $args{format} ||= "html";
 
     # I fully realise that this is nowhere near as generic as it needs
     # to be, but I'm working on the YAGNI principle for the time being.
-    $self->{config}->frontend()->output($ct, $out);
+    $self->{config}->frontend()->output(
+        $self->{config}->renderer->generate($args{format}, $self, @documents)
+    );
 }
 
 =head2 config
@@ -221,9 +226,13 @@ sub arguments {return $_[0]->{arguments} }
 This module is free software, and may be distributed under the same
 terms as Perl itself.
 
+=head1 THANKS
+
+Steve Peters provided Atom support.
+
 =head1 AUTHOR
 
-Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+Copyright (C) 2003, Simon Cozens C<simon@cpan.org>
 
 =cut
 

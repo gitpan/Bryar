@@ -1,5 +1,12 @@
 Revision history for Perl extension Bryar.
 
+2.2 - Fri Jan 23 12:57:18 GMT 2004
+    - Added the dummy files that *really* allow a runthrough without
+      mod_perl
+    - Added support for Atom, made this generic by allowing you to register
+      your own formats and skins.
+    - Added an Atom template, thanks to Steve Peters
+
 2.1 - Thu Dec 11 13:55:09 GMT 2003
     - Bryar::DataSource::Base now returns a true value, which is always
       handy

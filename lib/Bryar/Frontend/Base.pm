@@ -63,7 +63,9 @@ sub parse_args {
     if (my $search = $params{search}) {
         $args{content} = $search if $search =~ /\S{3,}/; # Avoid trivials.
     }
-    $args{comments} = $params{comments} if $params{comments};
+    for (qw(comments format)) {
+        $args{$_} = $params{$_} if exists $params{$_};
+    }
     $self->process_new_comment($bryar, %params) if $params{newcomment};
     return %args;
 }
@@ -76,7 +78,7 @@ sub parse_path {
     #...
 
     my %args;
-    if (defined $pi[-1] and $pi[-1] eq "xml")     { $args{xml} = 1; pop @pi; }
+    if (defined $pi[-1] and $pi[-1] eq "xml")     { $args{format} = "xml"; pop @pi; }
     if (defined $pi[-1] and $pi[-1] =~ /id_(.*)/) { $args{id} = $1; pop @pi; }
     if (defined $pi[0] and $pi[0] =~ /^([a-zA-Z]\w*)/) { # We have a subblog
         $args{subblog} = $1;

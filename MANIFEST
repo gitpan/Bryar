@@ -25,5 +25,8 @@ t/config.t
 t/flatfile.t
 t/renderer.t
 t/templates/template.html
+t/dummy/Apache.pm
+t/dummy/Apache/Constants.pm
+t/dummy/Apache/Request.pm
 bryar-newblog
 META.yml                                Module meta-data (added by MakeMaker)
