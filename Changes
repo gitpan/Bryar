@@ -1,5 +1,8 @@
 Revision history for Perl extension Bryar.
 
+2.5 - Sun Feb  8 21:26:16 GMT 2004
+    - Emergency release - unbreak comments.
+
 2.4 - Sun Feb  8 15:12:21 GMT 2004
     - Get default MIME types right
     - Refactor FlatFile to allow selecting post extensions, etc.

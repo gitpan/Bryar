@@ -128,10 +128,11 @@ sub make_document {
     local $/;
     my $content = <$in>;
     close $in;
+    my $id = $self->file_to_id($file);
 
     my $comments = [];
-    $comments = [_read_comments($file, $file.".comments") ]
-        if -e $file.".comments";
+    $comments = [_read_comments($id, $id.".comments") ]
+        if -e $id.".comments";
 
     my $dir = dirname($file);
     $dir =~ s{^\./?}{};
@@ -141,7 +142,7 @@ sub make_document {
         content  => $content,
         epoch    => $when,
         author   => $who,
-        id       => $self->file_to_id($file),
+        id       => $id,
         category => $category,
         comments => $comments
     );
