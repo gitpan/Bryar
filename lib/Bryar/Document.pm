@@ -1,0 +1,190 @@
+package Bryar::Document;
+use Time::Piece;
+use 5.006;
+use strict;
+use warnings;
+use Carp;
+our $VERSION = '1.0';
+
+=head1 NAME
+
+Bryar::Document - Represents a blog post
+
+=head1 SYNOPSIS
+
+	$self->new(...);
+
+	$self->content();     # Get content
+	$self->title();       # Get title
+
+	$self->epoch();       # Get epoch
+    $self->timepiece();   # Get the date as a Time::Piece object
+
+	$self->category();    # Get category
+	$self->author();      # Get author
+
+	$self->keywords(...); # Return keywords relating to this document
+    $self->id             # Unique identifier
+
+=head1 DESCRIPTION
+
+This encapsulates a blog post, as returned from a search on a data
+source.
+
+=head1 METHODS
+
+=head2 new
+
+    $self->new(%params)
+
+Creates a new Bryar::Document instance. 
+
+=cut
+
+
+sub new {
+    my $class = shift;
+    my %args = @_;
+    my $self = bless {
+        epoch =>  $args{epoch} ,
+        content =>  $args{content} ,
+        author =>  $args{author} ,
+        category =>  $args{category} ,
+        title =>  $args{title} ,
+        id => $args{id}
+
+    }, $class;
+    return $self;
+}
+
+
+=head2 content
+
+	$self->content();    # Get content
+
+Gets the value of the document's content
+
+=cut
+
+sub content {
+    my $self = shift;
+    return $self->{content};
+}
+
+
+=head2 title
+
+	$self->title();    # Get title
+
+Gets the value of the document's title
+
+=cut
+
+sub title {
+    my $self = shift;
+    return $self->{title};
+}
+
+
+=head2 epoch
+
+	$self->epoch();    # Get epoch
+
+Gets the value of the document's epoch
+
+=cut
+
+sub epoch {
+    my $self = shift;
+    return $self->{epoch};
+}
+
+=head2 timepiece 
+
+Returns the date of the document as a Time::Piece object.
+
+=cut
+
+sub timepiece {
+    my $self = shift;
+    return Time::Piece->new($self->{epoch});
+}
+
+=head2 category
+
+	$self->category();    # Get category
+
+Gets the value of the document's category
+
+=cut
+
+sub category {
+    my $self = shift;
+    return $self->{category};
+}
+
+
+=head2 author
+
+	$self->author();    # Get author
+
+Gets the value of the document's author
+
+=cut
+
+sub author {
+    my $self = shift;
+    return $self->{author};
+}
+
+
+=head2 keywords
+
+    $self->keywords
+
+Returns the keywords for this blog entry, using C<Lingua::EN::Keywords>
+if it's installed. May be computationally expensive!
+
+=cut
+
+sub keywords {
+    my $self = shift;
+    eval { require Lingua::EN::Keywords; };
+    return "" if $@;
+    return Lingua::EN::Keywords::keywords($self->content);
+    # Goodbye, CPU time!
+}
+
+=head2 id
+
+	$self->id();    # Get id
+
+Returns a unique identifier for the document.
+
+=cut
+
+sub id {
+    my $self = shift;
+    return $self->{id};
+}
+
+
+
+=head1 LICENSE
+
+This module is free software, and may be distributed under the same
+terms as Perl itself.
+
+
+=head1 AUTHOR
+
+Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+
+=head1 SEE ALSO
+
+
+
+
+
+1;

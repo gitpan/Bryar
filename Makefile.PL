@@ -1,0 +1,16 @@
+use 5.006;
+use ExtUtils::MakeMaker;
+WriteMakefile(
+    'NAME'              => 'Bryar',
+    'VERSION_FROM'      => 'lib/Bryar.pm',
+    'EXE_FILES'         => ['bryar-newblog'],
+    'PREREQ_PM'         => {
+           File::Find::Rule => 0.09,
+           Template => 2.0,
+           Time::Piece => 1.0,
+           UNIVERSAL::require => 0
+        },
+);
+
+print "You probably want to run bryar-newblog in a likely home for\n";
+print "your blog once we've finished installing.\n";
