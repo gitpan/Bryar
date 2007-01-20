@@ -10,7 +10,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '2.8_02';
+our $VERSION = '3.0';
 
 =head1 NAME
 
@@ -39,9 +39,7 @@ web server. Then do what it tells you.
 The long answer:
 
 The only front-end working in this release is the CGI one; please don't
-try this in mod_perl yet. C<Bryar::Frontend::Mod_perl> is experimental,
-and while I'm running it on my live server, it doesn't actually offer
-any advantages yet.
+try this in mod_perl yet.
 
 You'll need to write a little driver script which sets some parameters.
 For instance, my F<bryar.cgi> looks like this:
@@ -70,6 +68,7 @@ full of other options. I could, for instance, get away with
     name: Themes, Dreams and Crazy Schemes
     description: Simon Cozens' weblog
     baseurl: http://blog.simon-cozens.org/bryar.cgi
+    email: something@example.com
 
 in a F<bryar.conf>, and then would be able to use C<< Bryar->go() >>
 with no further parameters.
@@ -212,9 +211,6 @@ sub _doit {
 
     $args{format} ||= "html";
 
-	use Data::Dumper;
-	print STDERR Dumper($self->arguments), "\n";
-
     $self->config->frontend()->output(
 		$self->config->renderer->generate(
 					$self->{arguments}{format},
@@ -298,6 +294,9 @@ Cache-Control support, as well as the calendar.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@cpan.org>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
+
 
 =cut
 

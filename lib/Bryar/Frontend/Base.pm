@@ -3,7 +3,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 use Time::Piece;
 use Time::Local;
 use Digest::MD5 qw(md5_hex);
@@ -112,6 +112,7 @@ sub process_new_comment {
         document => $doc,
         author => $params{author},
         url => $params{url},
+        email => $params{email},
         content => $params{content},
         epoch => time
     );
@@ -149,7 +150,7 @@ Output the entire blog data to the browser
 sub output {
     my ($self, $ct, $data) = @_;
     $self->send_header("Content-type", $ct);
-    $self->send_header('Cache-Control', 'max-age=180');
+    # $self->send_header('Cache-Control', 'max-age=180');
     if ($self->_etag($data)) {
         $self->send_header('Status', '304 Not Modified');
         $self->send_header('Content-Length', 0);
@@ -199,6 +200,9 @@ terms as Perl itself.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
+
 
 =head1 SEE ALSO
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use Template;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 =head1 NAME
 
@@ -45,7 +45,12 @@ sub _tt {
         
     @path = map { $_, $_."/templates" } @path;
     return Template->new({
-        INCLUDE_PATH => \@path
+        INCLUDE_PATH => \@path,
+	ABSOLUTE     => 1,
+        EVAL_PERL    => 1,
+        RELATIVE     => 1,
+        PRE_CHOMP    => 1,
+        POST_CHOMP   => 1,
     });
 }
 
@@ -55,6 +60,10 @@ sub _tt_process {
     my $tt = $class->_tt($bryar);
     $tt->process($filename, {
         documents => \@documents,
+        recent    => [$bryar->config()->collector()->collect($bryar->config())],
+        archive   => [
+            $bryar->config()->source()->all_but_recent($bryar->config())
+        ],
         bryar     => $bryar,
     }, \$output);
     if (!$output) {
@@ -69,6 +78,8 @@ error as reported by Template Toolkit was:
 EOF
         );
     }
+    # $output =~ s/\s+/ /g;
+    # $output =~ s/>\s+</></g;
     return $output;
 }
 
@@ -128,6 +139,9 @@ terms as Perl itself.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
+
 
 =head1 SEE ALSO
 

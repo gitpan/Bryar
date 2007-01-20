@@ -60,11 +60,10 @@ sub collect_current {
     my $self = shift;
     my $config = shift;
     croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
-    my @docs = sort {$b->epoch <=> $a->epoch }
+    return sort {$b->epoch <=> $a->epoch }
                 $config->source->search(
                     $config,
                     limit => $config->recent());
-    return @docs;
 }
 
 

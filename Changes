@@ -1,5 +1,24 @@
 Revision history for Perl extension Bryar.
 
+3.0 - 2007-01-20
+    - First release by new maintainer David Cantrell
+    - Comments now accept an 'email' field from the user
+    - The default Template Toolkit renderer has a lot more of TT's options
+      turned on to support more complex templates
+    - For the FlatFile datasource *only* (but this is the default source):
+      - journal entries whose files' timestamps are in the future are
+        'embargoed'
+      - you *must* specify your email address so you can be notified of
+        comments
+      - comments are emailed to the journal's owner by shelling out to the
+        'mail' program
+      - comments are now subject to a crude spam filter:
+        - the string 'http://' appearing three or more times is presumed to
+          be spam, and the comment is simply thrown away
+        - the string 'http://' appearing one or two times means the comment
+          might be spam and the journal's owner is emailed so he can decide
+          whether to add it to the *.comments file by hand or not
+
 2.6 - Wed Feb 11 11:35:16 GMT 2004
     - Static rendering
     - Fixes to Config.pm accessors

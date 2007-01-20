@@ -31,3 +31,4 @@ t/dummy/Apache/Constants.pm
 t/dummy/Apache/Request.pm
 bryar-newblog
 META.yml                                Module meta-data (added by MakeMaker)
+t/2.comments

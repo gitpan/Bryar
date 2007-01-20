@@ -24,6 +24,7 @@ description : A blog without a more useful description
 baseurl : http://where.will.i.be/
 datadir : @{[ cwd() ]}
 author : your name here
+email : me\@example.com
 EOC
 
 write_file("bryar_first_post.txt", <<EOC);

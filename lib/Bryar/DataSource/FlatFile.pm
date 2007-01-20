@@ -7,7 +7,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 =head1 NAME
 
@@ -35,17 +35,36 @@ Returns all documents making up the blog.
 =cut
 
 sub all_documents {
+    # my ($self, $config) = @_;
+    # croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
+    # my $where = cwd;
+    # chdir($config->datadir); # Damn you, F::F::R.
+    # my @docs = map { $self->make_document($_) }
+    #             File::Find::Rule->file()
+    #                             ->name($self->entry_glob)
+    #                             ->maxdepth($config->depth)
+    #                             ->in(".");
+    # chdir($where);
+    # return @docs;
     my ($self, $config) = @_;
     croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
-    my $where = cwd;
-    chdir($config->datadir); # Damn you, F::F::R.
-    my @docs = map { $self->make_document($_) }
-                File::Find::Rule->file()
-                                ->name($self->entry_glob)
-                                ->maxdepth($config->depth)
-                                ->in(".");
-    chdir($where);
+    my @docs = sort { $b->epoch() <=> $a->epoch() } $self->search($config);
     return @docs;
+}
+
+=head2 all_but_recent
+
+    $self->all_but_recent
+
+Return all documented except recent() ones.
+
+=cut
+
+sub all_but_recent {
+    my ($self, $config) = @_;
+    croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
+    my @docs = sort { $b->epoch() <=> $a->epoch() } $self->search($config);
+    return @docs[$config->recent() .. $#docs];
 }
 
 =head2 entry_glob
@@ -94,19 +113,11 @@ sub search {
     my @docs;
     local $/;
     if ($params{content}) { $find->grep(qr/\b\Q$params{content}\E\b/i) }
-    if (!$params{limit}) {
-        @docs = map { $self->make_document($_) } $find->in(".");
-    } else {
-        @docs =  map { $self->make_document($_) } 
-                (
-                    map { $_->[0] }
-                    sort { $b->[1] <=> $a->[1] }
-                    map { [$_, ((stat$ _)[9]) ] }
-                    $find->in(".")
-                ) [0..$params{limit}-1];
-    }
+
+    @docs = sort { $b->epoch() <=> $a->epoch() } grep { $_->epoch() <= time () } map { $self->make_document($_) } $find->in(".");
+    $params{limit} ||= @docs;
     chdir($was);
-    return @docs;
+    return grep { defined } @docs[0..$params{limit}-1];
 }
 
 =head2 make_document
@@ -127,6 +138,7 @@ sub make_document {
     chomp $title;
     local $/;
     my $content = <$in>;
+    $content =~ s/\n\n/<p>/g;
     close $in;
     my $id = $self->file_to_id($file);
 
@@ -180,16 +192,41 @@ Records the given comment details.
 sub add_comment {
     my ($self, $config) = (shift, shift);
     my %params = @_;
-    my $file = $params{document}->id.".comments";
-    # This probably fails with subblogs, but I don't use them.
-    chdir $config->datadir."/";
-    open OUT, ">> $file" or die $!;
-    delete $params{document};
+
     s/\n/\r/g for values %params;
-    print OUT "$_: $params{$_}\n" for keys %params;
-    print OUT "-----\n";
-    # Looks a bit like blosxom, doesn't it?
-    close OUT;
+
+    my @links = ("$params{url} $params{content}" =~ m!(http://)!g);
+    if(@links > 3) { # more than three links is definitely spam
+        die("Attempt to spam the journal\n");
+        # $config->frontend()->report_error("That looked like spam.  Go away.\n");
+    } elsif(length($params{content}) < 1) { # real content always has, errm, content
+        die("Attempt to post with no content\n");
+    } elsif(@links) {
+        open(MAIL, '| mail -s "'.$params{email}.' '.$params{author}.' maybe tried to spam the journal" '.$config->email()) || die("Can't send mail\n$!\n");
+        print MAIL "$_: $params{$_}\n" for keys %params;
+        print MAIL "\nEnvironment\n";
+        print MAIL "$_: $ENV{$_}\n" for keys %ENV;
+        close(MAIL) || die("Can't send mail:\n$!\n");
+        $config->frontend()->report_error("Your comment is being held for approval\n");
+    } else {
+        my $file = $params{document}->id.".comments";
+        $params{url} = "http://".$params{url}
+            if($params{url} && $params{url} !~ /^http:\/\//);
+        # This probably fails with subblogs, but I don't use them.
+        chdir $config->datadir."/";
+        open OUT, ">> $file" or die $!;
+        delete $params{document};
+        print OUT "$_: $params{$_}\n" for keys %params;
+        print OUT "-----\n";
+        # Looks a bit like blosxom, doesn't it?
+        close OUT;
+        # now send mail
+        open(MAIL, '| mail -s "Someone commented in the journal" '.$config->email()) || die("Can't send mail\n$!\n");
+        print MAIL "$_: $params{$_}\n" for keys %params;
+        print MAIL "\nEnvironment\n";
+        print MAIL "$_: $ENV{$_}\n" for keys %ENV;
+        close(MAIL) || die("Can't send mail:\n$!\n");
+    }
 }
 
 =head1 LICENSE
@@ -200,6 +237,9 @@ terms as Perl itself.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
+
 
 =cut
 

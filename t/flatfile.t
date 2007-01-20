@@ -29,7 +29,7 @@ is( scalar @search_results, 1, "Proper number of documents found." );
 #        url => $params{url},
 #        content => $params{content},
 #        epoch => tim
-ok ( $bryar->{config}->source->add_comment( $bryar->{config}, document => $search_results[0], author => 'jason gessner', url => 'http://www.multiply.org/', content => 'this is a test comment.  it is cool, innit?' ) );
+ok ( $bryar->{config}->source->add_comment( $bryar->{config}, document => $search_results[0], author => 'david cantrell', url => '', email => 'david@cantrell.org.uk', content => 'this is a test comment.  it is cool, innit?' ) );
 
 ok ( my @comment_entries = $bryar->{config}->source->search($bryar->{config}, id => 2 ));
 

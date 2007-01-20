@@ -5,7 +5,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 =head1 NAME
 
@@ -40,14 +40,14 @@ Creates a new Bryar::Comment instance.
 
 sub new {
     my $class = shift;
-    my %args = @_;
+    my %args;
+    { no warnings; %args = @_; } # turn off mumbling about uninitialised list
     my $self = bless {
         epoch =>  $args{epoch} ,
         content =>  $args{content} ,
         author =>  $args{author} ,
         url =>  $args{url} ,
         id => $args{id},
-
     }, $class;
     return $self;
 }
@@ -91,6 +91,8 @@ terms as Perl itself.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
 
 
 =head1 SEE ALSO

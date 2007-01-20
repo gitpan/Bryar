@@ -15,5 +15,6 @@ WriteMakefile(
         },
 );
 
-print "You probably want to run bryar-newblog in a likely home for\n";
-print "your blog once we've finished installing.\n";
+print "\nYou probably want to run bryar-newblog in a likely home for\n";
+print "your blog once we've finished installing.\n\n";
+print "If you are upgrading, please read the Changes file\n\n";

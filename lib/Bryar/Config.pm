@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 =head1 NAME
 
@@ -36,6 +36,7 @@ our %default_args = (
         description => "Put a better description here",
         baseurl =>  "",
         datadir => ".",
+        email => 'someone@example.com',
         depth => 1,
         recent => 20,
         renderer => "Bryar::Renderer::TT",
@@ -210,21 +211,24 @@ directory.
 
 =cut
 
-
-=head2 depth
-
-	$self->depth();    # Get depth
-	$self->depth(...); # Set depth
-
-Gets (and optionally sets) the value of the blog's depth
-
-=cut
-
 sub depth {
     my $self = shift;
     if (@_) { $self->{depth} = shift };
 
     return $self->{depth};
+}
+
+=head2 email
+
+    $self->email();     # Get email
+
+Get the owner's email address.  This is used for spam reporting.
+
+=cut
+
+sub email {
+    my $self = shift;
+    return $self->{email};
 }
 
 =head2 recent
@@ -268,6 +272,9 @@ terms as Perl itself.
 =head1 AUTHOR
 
 Copyright (C) 2003, Simon Cozens C<simon@kasei.com>
+
+some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
+
 
 =cut
 
