@@ -1,7 +1,6 @@
 package Bryar::DataSource::FlatFile::Dated;
 use base 'Bryar::DataSource::FlatFile';
 our $VERSION = '1.0';
-use Cwd;
 use File::Basename;
 use Bryar::Document;
 use File::Find::Rule;
@@ -39,9 +38,9 @@ See L<Bryar::DataSource::FlatFile>
 sub make_document {
     my ($self, $file) = @_;
     return unless $file;
-    open(my($in), $file) or return;
+    open(my($in), '<:utf8', $file) or return;
     local $/ = "\n";
-    my $who = getpwuid((stat $file)[4]);
+    my $who = getpwuid((stat $in)[4]);
     $file =~ s/\.txt$//;
     my $when  = <$in>;
     my $title = <$in>;
@@ -70,7 +69,7 @@ sub make_document {
 
 sub _read_comments {
     my ($id, $file) = @_;
-    open COMMENTS, $file or die $!;
+    open(COMMENTS, '<:utf8', $file) or die $!;
     local $/;
     # Watch carefully
     my $stuff = <COMMENTS>;

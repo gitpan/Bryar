@@ -9,6 +9,8 @@ use warnings;
 use Carp;
 our $VERSION = '1.2';
 
+my %UID_Cache;
+
 =head1 NAME
 
 Bryar::DataSource::FlatFile - Blog entries from flat files, a la blosxom
@@ -37,7 +39,7 @@ Returns all documents making up the blog.
 sub all_documents {
     # my ($self, $config) = @_;
     # croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
-    # my $where = cwd;
+    # my $where = getcwd;
     # chdir($config->datadir); # Damn you, F::F::R.
     # my @docs = map { $self->make_document($_) }
     #             File::Find::Rule->file()
@@ -99,7 +101,7 @@ A more advanced search for specific documents
 sub search {
     my ($self, $config, %params) = @_;
     croak "Must pass in a Bryar::Config object" unless UNIVERSAL::isa($config, "Bryar::Config");
-    my $was = cwd;
+    my $was = getcwd;
     my $where = $config->datadir."/";
     if ($params{subblog}) { $where .= $params{subblog}; }
     chdir($where); # Damn you, F::F::R.
@@ -130,15 +132,20 @@ blosxom-style.
 sub make_document {
     my ($self, $file) = @_;
     return unless $file;
-    open(my($in), $file) or return;
-    my $when = (stat $file)[9];
+    open(my($in), '<:utf8', $file) or return;
+    my $when = (stat $in)[9];
     local $/ = "\n";
-    my $who = getpwuid((stat $file)[4]);
+    my $fileuid = (stat _)[4];
+    my $who;
+        if (exists $UID_Cache{$fileuid}) {
+        $who = $UID_Cache{$fileuid};
+    } else {
+        $who = $UID_Cache{$fileuid} = getpwuid($fileuid);
+    }
     my $title = <$in>;
     chomp $title;
     local $/;
     my $content = <$in>;
-    $content =~ s/\n\n/<p>/g;
     close $in;
     my $id = $self->file_to_id($file);
 
@@ -162,7 +169,7 @@ sub make_document {
 
 sub _read_comments {
     my ($id, $file) = @_;
-    open COMMENTS, $file or die $!;
+    open(COMMENTS, '<:utf8', $file) or die $!;
     local $/;
     # Watch carefully
     my $stuff = <COMMENTS>;
@@ -197,40 +204,45 @@ sub add_comment {
 
     my @links = ("$params{url} $params{content}" =~ m!(http://)!g);
     if(@links > 3) { # more than three links is definitely spam
-        die("Attempt to spam the journal\n");
-        # $config->frontend()->report_error("That looked like spam.  Go away.\n");
+        $config->frontend->report_error('Comment failure', 'Attempt to spam the journal.');
     } elsif(length($params{content}) < 1) { # real content always has, errm, content
-        die("Attempt to post with no content\n");
+        $config->frontend->report_error('Comment failure', 'Attempt to post with no content.');
     } elsif(@links) {
         my($email, $author) = map { # kill funny chars to avoid remote
             my $foo = $_;           # execution in open(). Yuck.
             $foo =~ s/[^\w @]/_/g;
             $foo;
         } @params{qw(email author)};
-        open(MAIL, "| mail -s \"$email $author maybe tried to spam the journal\" ".$config->email()) || die("Can't send mail\n$!\n");
+        open(MAIL, "| mail -s \"$email $author maybe tried to spam the journal\" ".$config->email())
+            or $config->frontend->report_error('Comment failure', "Cannot send mail: $!");
         print MAIL "$_: $params{$_}\n" for keys %params;
         print MAIL "\nEnvironment\n";
         print MAIL "$_: $ENV{$_}\n" for keys %ENV;
-        close(MAIL) || die("Can't send mail:\n$!\n");
-        $config->frontend()->report_error("Your comment is being held for approval\n");
+        close MAIL
+            or $config->frontend->report_error('Comment failure', "Cannot send mail: $!");
+        # FIXME: this is not an error
+        $config->frontend->report_error("Your comment is being held for approval.");
     } else {
         my $file = $params{document}->id.".comments";
         $params{url} = "http://".$params{url}
             if($params{url} && $params{url} !~ /^http:\/\//);
         # This probably fails with subblogs, but I don't use them.
         chdir $config->datadir."/";
-        open OUT, ">> $file" or die $!;
+        open(OUT, ">>:utf8", $file)
+            or $config->frontend->report_error("Cannot open $file", $!);
         delete $params{document};
         print OUT "$_: $params{$_}\n" for keys %params;
         print OUT "-----\n";
         # Looks a bit like blosxom, doesn't it?
         close OUT;
         # now send mail
-        open(MAIL, '| mail -s "Someone commented in the journal" '.$config->email()) || die("Can't send mail\n$!\n");
+        open(MAIL, '| mail -s "Someone commented in the journal" '.$config->email())
+            or $config->frontend->report_error('Comment failure', "Cannot send mail: $!");
         print MAIL "$_: $params{$_}\n" for keys %params;
         print MAIL "\nEnvironment\n";
         print MAIL "$_: $ENV{$_}\n" for keys %ENV;
-        close(MAIL) || die("Can't send mail:\n$!\n");
+        close MAIL
+            or $config->frontend->report_error('Comment failure', "Cannot send mail: $!");
     }
 }
 

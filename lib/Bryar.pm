@@ -5,12 +5,13 @@ use Time::Local;
 use Bryar::Comment;
 use Calendar::Simple;
 use DateTime;
+use List::Util;
 
 use 5.006;
 use strict;
 use warnings;
 use Carp;
-our $VERSION = '3.1';
+our $VERSION = '4.0';
 
 =head1 NAME
 
@@ -204,20 +205,59 @@ sub go {
 
 sub _doit {
     my $self = shift;
-    my %args = $self->config->frontend()->parse_args($self->config, @_);
-	$self->{arguments} = \%args;
+    my %args = $self->config->frontend->parse_args($self->config, @_);
+    $self->{arguments} = \%args;
 
-    my @documents = $self->config->collector()->collect($self->config, %args);
+    # The HTTP headers must be reset to allow re-using the Bryar object
+    # (e.g. when using FastCGI).
+    $self->{http_headers} = { };
 
-    $args{format} ||= "html";
+    my $cache = $self->config->cache;
+    my ($cache_key, @output);
 
-    $self->config->frontend()->output(
-		$self->config->renderer->generate(
-					$self->{arguments}{format},
-					$self,
-					@documents
-				)
-    );
+    # try to fetch a complete formatted answer from the cache, if one exists
+    if ($cache) {
+        $cache_key = $self->cache_key;
+        my $object = $cache->get($cache_key);
+        @output = @$object if $object;
+    }
+
+    # if there is no cached answer we need to collect the data and generate one
+    if (not @output) {
+        my @documents = $self->config->collector->collect($self->config, %args);
+
+        my $last_modified = 0;
+        if (@documents) {
+            $last_modified = List::Util::max(map { $_->{epoch} } @documents);
+        } else {
+            $self->{http_headers}->{Status} = '404 Not Found';
+        }
+
+        $args{format} ||= 'html';
+
+        @output = (
+            $self->config->renderer->generate(
+                $self->{arguments}{format},
+                $self,
+                @documents
+            ),
+            $last_modified,
+            $self->{http_headers}
+        );
+
+        $cache->set($cache_key, \@output) if $cache;
+    }
+
+    $self->config->frontend->output(@output);
+}
+
+# create the key used to index the cache
+sub cache_key {
+    my $self = shift;
+
+    return 'Bryar: ' . join(' | ', map {
+        $_ . ' => ' . $self->{arguments}->{$_}
+    } sort keys %{$self->{arguments}});
 }
 
 =head2 posts_calendar
@@ -246,8 +286,6 @@ sub posts_calendar {
 
 	# make an hash with keys the days with a post
 	my %posts = map { DateTime->from_epoch( epoch => $_->{epoch},  time_zone => $self->config->{time_zone} )->day() => $_->{id} } @documents;
-use Data::Dumper;
-print STDERR Dumper(\%posts);
 
 	my @m = calendar($month, $year);
 	my @month;
@@ -288,8 +326,9 @@ terms as Perl itself.
 
 =head1 THANKS
 
-Steve Peters provided Atom support. Marco d'Itri added ETag and
-Cache-Control support, as well as the calendar.
+Steve Peters provided Atom support.
+Marco d'Itri contributed the calendar, HTTP validators, caching, FastCGI,
+sitemaps, non-ASCII charsets, bug fixes and optimizations.
 
 =head1 AUTHOR
 
@@ -297,6 +336,7 @@ Copyright (C) 2003, Simon Cozens C<simon@cpan.org>
 
 some parts Copyright 2007 David Cantrell C<david@cantrell.org.uk>
 
+some parts Copyright 2009 Marco d'Itri C<md@linux.it>
 
 =cut
 

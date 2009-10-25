@@ -4,7 +4,8 @@ use strict;
 use warnings;
 use Carp;
 use Template;
-our $VERSION = '1.1';
+use Template::Provider::Encoding;
+our $VERSION = '1.2';
 
 =head1 NAME
 
@@ -46,7 +47,12 @@ sub _tt {
     @path = map { $_, $_."/templates" } @path;
     return Template->new({
         INCLUDE_PATH => \@path,
-	ABSOLUTE     => 1,
+        LOAD_TEMPLATES => [
+            Template::Provider::Encoding->new({
+                INCLUDE_PATH => \@path,
+            }),
+        ],
+        ABSOLUTE     => 1,
         EVAL_PERL    => 1,
         RELATIVE     => 1,
         PRE_CHOMP    => 1,
@@ -60,26 +66,25 @@ sub _tt_process {
     my $tt = $class->_tt($bryar);
     $tt->process($filename, {
         documents => \@documents,
-        recent    => [$bryar->config()->collector()->collect($bryar->config())],
-        archive   => [
-            $bryar->config()->source()->all_but_recent($bryar->config())
-        ],
         bryar     => $bryar,
     }, \$output);
     if (!$output) {
-        $bryar->{config}->frontend->report_error("Template Error",
+        my $error = join("\n", $tt->error);
+        $error =~ s/&/&amp;/g;
+        $error =~ s/</&lt;/g;
+        $error =~ s/>/&gt;/g;
+        $bryar->{config}->frontend->report_error_html("Template Error",
 <<EOF
+<p>
 An error occurred while processing the templates for the blog. The
 error as reported by Template Toolkit was:
-
+</p>
 <PRE>
-@{[ $tt->error ]}
+$error
 </PRE>
 EOF
         );
     }
-    # $output =~ s/\s+/ /g;
-    # $output =~ s/>\s+</></g;
     return $output;
 }
 

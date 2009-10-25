@@ -55,7 +55,13 @@ sub new {
 
     %args = (%args, $self->load($args{config} || "bryar.conf"));
     @{$self}{keys %args} = values %args;
-    $self->{$_}->require or die $@ for qw(renderer source collector frontend);
+
+    foreach my $module (qw(renderer source collector frontend)) {
+        $self->$module->require or die $@;
+        $self->$module($self->$module->new(config => $self))
+            if $self->$module->can('new') or ref $self->$module;
+    }
+
     return $self;
 }
 
@@ -76,12 +82,14 @@ sub load {
         if (-r "$datadir/$file") { $file = "$datadir/$file"; }
         else                     { return () }
     }
-    open my $config, $file or return ();
+    open(my $config, '<:utf8', $file) or return ();
     while (<$config>) {
         chomp;
+        next if /^#/ or /^$/;
         my ($k, $v) = split /\s*:\s*/, $_, 2;
         $args{$k} = $v;
     }
+    close $config;
     return %args;
 }
 
@@ -153,6 +161,24 @@ sub source {
     if (@_) { $self->{source} = shift };
 
     return $self->{source};
+}
+
+
+=head2 cache
+
+	$self->cache();    # Get cache object
+	$self->cache(new Cache::FileCache()); # Set cache object
+
+An instance of a C<Cache::Cache> subclass which will be used to cache
+the formatted pages.
+
+=cut
+
+sub cache {
+    my $self = shift;
+    if (@_) { $self->{cache} = shift };
+
+    return $self->{cache};
 }
 
 
